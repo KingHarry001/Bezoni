@@ -6,6 +6,11 @@ import 'package:bezoni/views/auth/login.dart';
 import 'package:bezoni/views/splash/splash.dart';
 import 'package:bezoni/views/dashboard/dashboard.dart';
 import 'package:bezoni/views/home/home.dart';
+import 'package:bezoni/views/home/preferences.dart';
+import 'package:bezoni/views/home/search.dart';
+import 'package:bezoni/views/home/cart.dart';
+import 'package:bezoni/views/home/messages.dart';
+import 'package:bezoni/views/home/profile.dart';
 
 void main() {
   runApp(BezoniApp());
