@@ -1,6 +1,6 @@
-import 'package:bezoni/views/onboarding.dart';
+import 'package:bezoni/screens/onboarding.dart';
 import 'package:flutter/material.dart';
-import 'package:bezoni/views/dashboard/dashboard.dart';
+import 'package:bezoni/screens/dashboard/dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

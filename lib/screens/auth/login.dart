@@ -289,7 +289,7 @@ class _DeliveryLoginScreenState extends State<DeliveryLoginScreen> {
       child: ElevatedButton(
         onPressed: () {
           if (_formKey.currentState!.validate()) {
-            Navigator.pushNamed(context, '/dashboard');
+            Navigator.pushNamed(context, '/home');
           }
         },
         style: ElevatedButton.styleFrom(

@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:bezoni/core/shared.dart';
-import 'package:bezoni/views/onboarding.dart';
-import 'package:bezoni/views/auth/signup.dart';
-import 'package:bezoni/views/auth/login.dart';
-import 'package:bezoni/views/splash/splash.dart';
-import 'package:bezoni/views/dashboard/dashboard.dart';
-import 'package:bezoni/views/home/home.dart';
-import 'package:bezoni/views/home/preferences.dart';
-import 'package:bezoni/views/home/search.dart';
-import 'package:bezoni/views/home/cart.dart';
-import 'package:bezoni/views/home/messages.dart';
-import 'package:bezoni/views/home/profile.dart';
+import 'package:bezoni/screens/onboarding.dart';
+import 'package:bezoni/screens/auth/signup.dart';
+import 'package:bezoni/screens/auth/login.dart';
+import 'package:bezoni/screens/splash/splash.dart';
+import 'package:bezoni/screens/dashboard/dashboard.dart';
+import 'package:bezoni/screens/home/home.dart';
+import 'package:bezoni/screens/home/preferences.dart';
+import 'package:bezoni/screens/home/search.dart';
+import 'package:bezoni/screens/home/cart.dart';
+import 'package:bezoni/screens/home/messages.dart';
+import 'package:bezoni/screens/home/profile.dart';
+import 'package:bezoni/screens/roles/admin_dashboard.dart';
 
 void main() {
   runApp(BezoniApp());
@@ -43,6 +44,11 @@ class BezoniApp extends StatelessWidget {
         '/messages': (ctx) => const MessagesScreen(),
         '/profile': (ctx) => const ProfileScreen(),
         '/restaurant': (ctx) => const RestaurantDetailsScreen(),
+        '/personal-details': (context) => const PersonalDetailsScreen(),
+        '/addresses': (context) => const AddressesScreen(),
+        '/payment-methods': (context) => const PaymentMethodsScreen(),
+        '/order-history': (context) => const OrderHistoryScreen(),
+        '/admin': (context) => AdminDashboard(),
       },
     );
   }
@@ -310,7 +316,7 @@ class SuccessScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/dashboard');
+                    Navigator.pushNamed(context, '/home');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,

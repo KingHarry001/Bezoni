@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:bezoni/components/cart_notifier.dart'; 
-import 'package:bezoni/views/home/preferences.dart';
-import 'package:bezoni/views/home/search.dart';
-import 'package:bezoni/views/home/cart.dart';
-import 'package:bezoni/views/home/messages.dart';
-import 'package:bezoni/views/home/profile.dart';
+import 'package:bezoni/screens/home/preferences.dart';
+import 'package:bezoni/screens/home/search.dart';
+import 'package:bezoni/screens/home/cart.dart';
+import 'package:bezoni/screens/home/messages.dart';
+import 'package:bezoni/screens/home/profile.dart';
 
 /// =====================
 /// Home

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:bezoni/main.dart';
 import 'package:bezoni/core/shared.dart';
+import 'package:bezoni/screens/roles/admin_dashboard.dart';
 
 // Dashboard Screen (Basic placeholder)
 class DashboardScreen extends StatelessWidget {
@@ -77,10 +77,9 @@ class DashboardScreen extends StatelessWidget {
               height: screenHeight * 0.07, // 7% of screen height
               child: OutlinedButton(
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LandingScreen()),
-                    (route) => false,
+                    MaterialPageRoute(builder: (context) => AdminDashboard()),
                   );
                 },
                 style: OutlinedButton.styleFrom(

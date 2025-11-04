@@ -17,15 +17,14 @@ class CartItem {
 }
 
 class CartNotifier extends ChangeNotifier {
+  static final CartNotifier _instance = CartNotifier._internal();
+  factory CartNotifier() => _instance;
+  CartNotifier._internal();
   final List<CartItem> _items = [];
   List<CartItem> get items => List.unmodifiable(_items);
-
   double get total =>
       _items.fold(0, (sum, item) => sum + (item.price * item.quantity));
-
-  int get itemCount =>
-      _items.fold(0, (sum, item) => sum + item.quantity);
-
+  int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   void addItem(CartItem item) {
     final existingIndex = _items.indexWhere((i) => i.id == item.id);
     if (existingIndex >= 0) {
