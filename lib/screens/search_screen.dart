@@ -1,3 +1,4 @@
+import 'package:bezoni/widgets/screen_wrapper.dart';
 import 'package:flutter/material.dart';
 
 // Search Data Models
@@ -60,11 +61,7 @@ class SearchManager extends ChangeNotifier {
   bool get isSearching => _isSearching;
 
   void _initializeData() {
-    _recentSearches = [
-      'Smokey Jollof',
-      'Chicken Leg',
-      'Sunset Plaza Hotel',
-    ];
+    _recentSearches = ['Smokey Jollof', 'Chicken Leg', 'Sunset Plaza Hotel'];
 
     _popularSearches = [
       'Chicken Republic',
@@ -100,14 +97,14 @@ class SearchManager extends ChangeNotifier {
 
   void addRecentSearch(String query) {
     if (query.trim().isEmpty) return;
-    
+
     _recentSearches.remove(query);
     _recentSearches.insert(0, query);
-    
+
     if (_recentSearches.length > 5) {
       _recentSearches = _recentSearches.take(5).toList();
     }
-    
+
     notifyListeners();
   }
 
@@ -136,21 +133,25 @@ class SearchManager extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 500));
 
     _currentResults.clear();
-    
+
     final lowerQuery = query.toLowerCase();
-    
+
     // Search restaurants
     for (final restaurant in _restaurants) {
       if (restaurant.name.toLowerCase().contains(lowerQuery) ||
           restaurant.description.toLowerCase().contains(lowerQuery) ||
-          restaurant.tags.any((tag) => tag.toLowerCase().contains(lowerQuery))) {
-        _currentResults.add(SearchResult(
-          id: restaurant.id,
-          title: restaurant.name,
-          subtitle: restaurant.description,
-          type: 'restaurant',
-          imageUrl: restaurant.imageUrl,
-        ));
+          restaurant.tags.any(
+            (tag) => tag.toLowerCase().contains(lowerQuery),
+          )) {
+        _currentResults.add(
+          SearchResult(
+            id: restaurant.id,
+            title: restaurant.name,
+            subtitle: restaurant.description,
+            type: 'restaurant',
+            imageUrl: restaurant.imageUrl,
+          ),
+        );
       }
     }
 
@@ -173,7 +174,7 @@ class _SearchScreenState extends State<SearchScreen>
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
+
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -185,12 +186,12 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
@@ -199,18 +200,12 @@ class _SearchScreenState extends State<SearchScreen>
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.elasticOut,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.elasticOut),
+        );
 
     _fadeController.forward();
     _slideController.forward();
@@ -247,13 +242,6 @@ class _SearchScreenState extends State<SearchScreen>
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Color(0xFF374151),
-          ),
-        ),
         title: const Text(
           "Search",
           style: TextStyle(
@@ -278,8 +266,8 @@ class _SearchScreenState extends State<SearchScreen>
                     color: const Color(0xFFF9FAFB),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _focusNode.hasFocus 
-                          ? const Color(0xFF10B981) 
+                      color: _focusNode.hasFocus
+                          ? const Color(0xFF10B981)
                           : const Color(0xFFE5E7EB),
                     ),
                   ),
@@ -292,10 +280,7 @@ class _SearchScreenState extends State<SearchScreen>
                         color: Color(0xFF9CA3AF),
                         fontSize: 16,
                       ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Color(0xFF6B7280),
-                      ),
+                      prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 16,
@@ -311,7 +296,7 @@ class _SearchScreenState extends State<SearchScreen>
                   ),
                 ),
               ),
-              
+
               // Content
               Expanded(
                 child: ListenableBuilder(
@@ -334,7 +319,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   Widget _buildSearchSuggestions() {
     final searchManager = SearchManager();
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -359,10 +344,7 @@ class _SearchScreenState extends State<SearchScreen>
                   },
                   child: const Text(
                     "Clear All",
-                    style: TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
                   ),
                 ),
               ],
@@ -382,7 +364,7 @@ class _SearchScreenState extends State<SearchScreen>
             }),
             const SizedBox(height: 24),
           ],
-          
+
           // Explore Brands
           const Text(
             "Explore Brands",
@@ -393,15 +375,15 @@ class _SearchScreenState extends State<SearchScreen>
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Featured Restaurant Card
           _RestaurantCard(
             restaurant: searchManager.restaurants.first,
             delay: const Duration(milliseconds: 200),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Popular Searches
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -445,7 +427,7 @@ class _SearchScreenState extends State<SearchScreen>
 
   Widget _buildSearchResults() {
     final searchManager = SearchManager();
-    
+
     if (searchManager.isSearching) {
       return const Center(
         child: Column(
@@ -457,10 +439,7 @@ class _SearchScreenState extends State<SearchScreen>
             SizedBox(height: 16),
             Text(
               "Searching...",
-              style: TextStyle(
-                color: Color(0xFF6B7280),
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
             ),
           ],
         ),
@@ -489,20 +468,17 @@ class _SearchScreenState extends State<SearchScreen>
               ),
               Text(
                 "(${searchManager.currentResults.length}) Set",
-                style: const TextStyle(
-                  color: Color(0xFF6B7280),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Results
           ...searchManager.currentResults.asMap().entries.map((entry) {
             final index = entry.key;
             final result = entry.value;
-            
+
             if (result.type == 'restaurant') {
               final restaurant = searchManager.restaurants.firstWhere(
                 (r) => r.id == result.id,
@@ -512,7 +488,7 @@ class _SearchScreenState extends State<SearchScreen>
                 delay: Duration(milliseconds: index * 100),
               );
             }
-            
+
             return const SizedBox.shrink();
           }),
         ],
@@ -531,10 +507,7 @@ class _SearchScreenState extends State<SearchScreen>
             decoration: BoxDecoration(
               color: const Color(0xFFF3F4F6),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 2,
-              ),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
             ),
             child: const Icon(
               Icons.search_off,
@@ -611,18 +584,12 @@ class _AnimatedSearchTileState extends State<_AnimatedSearchTile>
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.elasticOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
@@ -704,10 +671,7 @@ class _AnimatedSearchTileState extends State<_AnimatedSearchTile>
 }
 
 class _RestaurantCard extends StatefulWidget {
-  const _RestaurantCard({
-    required this.restaurant,
-    required this.delay,
-  });
+  const _RestaurantCard({required this.restaurant, required this.delay});
 
   final Restaurant restaurant;
   final Duration delay;
@@ -733,18 +697,12 @@ class _RestaurantCardState extends State<_RestaurantCard>
     _scaleAnimation = Tween<double>(
       begin: 0.9,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.elasticOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
@@ -807,10 +765,7 @@ class _RestaurantCardState extends State<_RestaurantCard>
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFFF59E0B),
-                                Color(0xFFD97706),
-                              ],
+                              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
                             ),
                           ),
                           child: const Center(
@@ -846,7 +801,7 @@ class _RestaurantCardState extends State<_RestaurantCard>
                           ),
                       ],
                     ),
-                    
+
                     // Restaurant Info
                     Padding(
                       padding: const EdgeInsets.all(16),
@@ -878,7 +833,9 @@ class _RestaurantCardState extends State<_RestaurantCard>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF10B981,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -908,7 +865,9 @@ class _RestaurantCardState extends State<_RestaurantCard>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF6B7280).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF6B7280,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(

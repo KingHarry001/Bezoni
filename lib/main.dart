@@ -1,343 +1,118 @@
+import 'package:bezoni/screens/categories_screen.dart';
+import 'package:bezoni/screens/restaurant_details_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:bezoni/core/shared.dart';
-import 'package:bezoni/screens/onboarding.dart';
-import 'package:bezoni/screens/auth/signup.dart';
-import 'package:bezoni/screens/auth/login.dart';
-import 'package:bezoni/screens/splash/splash.dart';
-import 'package:bezoni/screens/dashboard/dashboard.dart';
-import 'package:bezoni/screens/home/home.dart';
-import 'package:bezoni/screens/home/preferences.dart';
-import 'package:bezoni/screens/home/search.dart';
-import 'package:bezoni/screens/home/cart.dart';
-import 'package:bezoni/screens/home/messages.dart';
-import 'package:bezoni/screens/home/profile.dart';
-import 'package:bezoni/screens/roles/admin_dashboard.dart';
+import 'screens/home_screen.dart';
+import 'screens/search_screen.dart';
+import 'screens/cart.dart';
+import 'screens/messages.dart';
+import 'screens/profile_screen.dart';
+import 'screens/preferences.dart';
+import 'core/navigation_service.dart';
+import 'widgets/screen_wrapper.dart';
+import 'core/api_client.dart';
 
-void main() {
-  runApp(BezoniApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize API client
+  await ApiClient().initialize();
+
+  runApp(const BezoniApp());
 }
 
 class BezoniApp extends StatelessWidget {
+  const BezoniApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Bezoni',
-      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Inter'),
-      initialRoute: '/splash',
-      routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/onboarding': (context) => OnboardingScreen(),
-        '/dashboard': (context) => DashboardScreen(),
-        '/signup': (context) => CustomerSignupScreen(),
-        '/business-signup': (context) => BusinessSignupScreen(),
-        '/delivery-signup': (context) => DeliverySignupScreen(),
-        '/business-login': (context) => BusinessLoginScreen(),
-        '/delivery-login': (context) => DeliveryLoginScreen(),
-        '/success': (context) => SuccessScreen(),
-        '/landingpage': (context) => LandingScreen(),
-        '/preferences': (ctx) => const PreferencesScreen(),
-        '/home': (ctx) => const HomeScreen(),
-        '/categories': (ctx) => const CategoriesScreen(),
-        '/search': (ctx) => const SearchScreen(),
-        '/cart': (ctx) => const CartScreen(),
-        '/messages': (ctx) => const MessagesScreen(),
-        '/profile': (ctx) => const ProfileScreen(),
-        '/restaurant': (ctx) => const RestaurantDetailsScreen(),
-        '/personal-details': (context) => const PersonalDetailsScreen(),
-        '/addresses': (context) => const AddressesScreen(),
-        '/payment-methods': (context) => const PaymentMethodsScreen(),
-        '/order-history': (context) => const OrderHistoryScreen(),
-        '/admin': (context) => AdminDashboard(),
-      },
-    );
-  }
-}
-
-// Landing Screen - Choose between Business and Delivery
-class LandingScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.apps, color: Colors.white, size: 20),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Bezoni',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 60),
-              // Welcome content
-              Text(
-                'Welcome to Bezoni',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Choose how you want to get started',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 60),
-              // Business Option
-              _buildOptionCard(
-                context,
-                title: 'For Business',
-                subtitle: 'Grow your business with our delivery platform',
-                icon: Icons.business,
-                onSignUpTap: () =>
-                    Navigator.pushNamed(context, '/business-signup'),
-                onLoginTap: () =>
-                    Navigator.pushNamed(context, '/business-login'),
-              ),
-              SizedBox(height: 24),
-              // Delivery Option
-              _buildOptionCard(
-                context,
-                title: 'For Delivery',
-                subtitle: 'Join our delivery team and start earning',
-                icon: Icons.delivery_dining,
-                onSignUpTap: () =>
-                    Navigator.pushNamed(context, '/delivery-signup'),
-                onLoginTap: () =>
-                    Navigator.pushNamed(context, '/delivery-login'),
-              ),
-              Spacer(),
-            ],
-          ),
-        ),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: const Color(0xFF10B981),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        fontFamily: 'SF Pro',
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF10B981)),
       ),
+      initialRoute: NavigationService.preferencesRoute,
+      onGenerateRoute: _generateRoute,
     );
   }
 
-  Widget _buildOptionCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onSignUpTap,
-    required VoidCallback onLoginTap,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 48, color: Colors.black),
-          SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onLoginTap,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.black),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onSignUpTap,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+  Route<dynamic>? _generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      // Preferences/Onboarding (no bottom nav)
+      case NavigationService.preferencesRoute:
+      case '/':
+        return MaterialPageRoute(
+          builder: (_) => const PreferencesScreen(),
+          settings: settings,
+        );
 
-// Success Screen
-class SuccessScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: buildAppBar(),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Illustration
-              Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Background blob
-                    Container(
-                      width: 160,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.green[200],
-                        borderRadius: BorderRadius.circular(80),
-                      ),
-                    ),
-                    // Person illustration (simplified)
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Head
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: Colors.orange[300],
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        // Body
-                        Container(
-                          width: 25,
-                          height: 35,
-                          decoration: BoxDecoration(
-                            color: Colors.green[600],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        // Laptop
-                        Container(
-                          width: 40,
-                          height: 25,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[700],
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 40),
-              Text(
-                'Woohoo! You\'re in. 🎉',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Thanks for joining the Bezoni family! We can\'t wait to\nhelp grow your business. Here\'s to a bright future ahead!',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 60),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+      case NavigationService.homeRoute:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: NavigationService.homeRoute,
+            child: const HomeScreen(),
           ),
-        ),
-      ),
-    );
+          settings: settings,
+        );
+
+      // Search Tab
+      case NavigationService.searchRoute:
+        return MaterialPageRoute(
+          builder: (_) => const SearchTabWrapper(child: SearchScreen()),
+          settings: settings,
+        );
+
+      // Cart Tab
+      case NavigationService.cartRoute:
+        return MaterialPageRoute(
+          builder: (_) => const CartTabWrapper(child: CartScreen()),
+          settings: settings,
+        );
+
+      // Messages Tab
+      case NavigationService.messagesRoute:
+        return MaterialPageRoute(
+          builder: (_) => const MessagesTabWrapper(child: MessagesScreen()),
+          settings: settings,
+        );
+
+      // Profile Tab
+      case NavigationService.profileRoute:
+        return MaterialPageRoute(
+          builder: (_) => const ProfileTabWrapper(child: ProfileScreen()),
+          settings: settings,
+        );
+
+      // Other screens (with back button, no bottom nav)
+      case NavigationService.categoriesRoute:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const CategoriesScreen(),
+          ),
+          settings: settings,
+        );
+
+      case NavigationService.restaurantRoute:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const RestaurantDetailsScreen(),
+          ),
+          settings: settings,
+        );
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(child: Text('No route defined for ${settings.name}')),
+          ),
+        );
+    }
   }
 }

@@ -1,6 +1,6 @@
+import 'package:bezoni/screens/home_screen.dart';
 import 'package:bezoni/screens/onboarding.dart';
 import 'package:flutter/material.dart';
-import 'package:bezoni/screens/dashboard/dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (userAuthenticated) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => DashboardScreen()),
+        MaterialPageRoute(builder: (_) => HomeScreen()),
       );
     } else {
       Navigator.pushReplacement(

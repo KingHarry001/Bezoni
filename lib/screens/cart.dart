@@ -34,7 +34,7 @@ enum OrderStage {
   paymentReceived,
   preparingOrder,
   orderInTransit,
-  orderCompleted
+  orderCompleted,
 }
 
 class OrderStatus {
@@ -76,25 +76,35 @@ class OrderManager extends ChangeNotifier {
 
     Future.delayed(const Duration(seconds: 10), () {
       if (order.currentStage == OrderStage.paymentReceived) {
-        _updateOrderStage(order, OrderStage.preparingOrder, "Your order will be ready soon");
+        _updateOrderStage(
+          order,
+          OrderStage.preparingOrder,
+          "Your order will be ready soon",
+        );
       }
     });
 
     Future.delayed(const Duration(seconds: 20), () {
       if (order.currentStage == OrderStage.preparingOrder) {
-        _updateOrderStage(order, OrderStage.orderInTransit, "Your order is on the way");
+        _updateOrderStage(
+          order,
+          OrderStage.orderInTransit,
+          "Your order is on the way",
+        );
       }
     });
   }
 
   void _updateOrderStage(Order order, OrderStage newStage, String message) {
     order.currentStage = newStage;
-    order.statusHistory.add(OrderStatus(
-      stage: newStage,
-      timestamp: DateTime.now(),
-      message: message,
-      estimatedDuration: _getEstimatedDuration(newStage),
-    ));
+    order.statusHistory.add(
+      OrderStatus(
+        stage: newStage,
+        timestamp: DateTime.now(),
+        message: message,
+        estimatedDuration: _getEstimatedDuration(newStage),
+      ),
+    );
     notifyListeners();
   }
 
@@ -140,12 +150,7 @@ class CartScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: const TabBarView(
-          children: [
-            _CartTab(),
-            _OrdersTab(),
-          ],
-        ),
+        body: const TabBarView(children: [_CartTab(), _OrdersTab()]),
       ),
     );
   }
@@ -160,7 +165,7 @@ class _CartTab extends StatelessWidget {
       listenable: CartNotifier(),
       builder: (context, _) {
         final cart = CartNotifier();
-        
+
         return cart.items.isEmpty
             ? const Center(
                 child: Column(
@@ -260,8 +265,9 @@ class _CartTab extends StatelessWidget {
   }
 
   void _processCheckout(BuildContext context, CartNotifier cart) {
-    final orderId = "BFA${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}";
-    
+    final orderId =
+        "BFA${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}";
+
     // Create initial order with first status
     final order = Order(
       id: orderId,
@@ -307,7 +313,7 @@ class _OrdersTab extends StatelessWidget {
       listenable: OrderManager(),
       builder: (context, _) {
         final orders = OrderManager().orders;
-        
+
         if (orders.isEmpty) {
           return const Center(
             child: Column(
@@ -355,18 +361,13 @@ class _OrdersTab extends StatelessWidget {
   void _showOrderDetails(BuildContext context, Order order) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => OrderDetailsScreen(order: order),
-      ),
+      MaterialPageRoute(builder: (context) => OrderDetailsScreen(order: order)),
     );
   }
 }
 
 class _OrderCard extends StatelessWidget {
-  const _OrderCard({
-    required this.order,
-    required this.onTap,
-  });
+  const _OrderCard({required this.order, required this.onTap});
 
   final Order order;
   final VoidCallback onTap;
@@ -405,9 +406,14 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.currentStage).withOpacity(0.1),
+                      color: _getStatusColor(
+                        order.currentStage,
+                      ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -424,10 +430,7 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 order.brandNames,
-                style: const TextStyle(
-                  color: Color(0xFF6B7280),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
               ),
               const SizedBox(height: 12),
               Row(
@@ -506,17 +509,6 @@ class OrderDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text("Order ${order.id} (${order.brandNames})"),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        actions: [
-          TextButton(
-            onPressed: () => _contactSupport(context),
-            child: const Text("Contact Support"),
-          ),
-        ],
-      ),
       body: ListenableBuilder(
         listenable: OrderManager(),
         builder: (context, _) {
@@ -557,9 +549,9 @@ class OrderDetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Order Timeline
                 Container(
                   width: double.infinity,
@@ -575,8 +567,10 @@ class OrderDetailsScreen extends StatelessWidget {
                         final status = entry.value;
                         final isLast = index == order.statusHistory.length - 1;
                         final isCurrent = status.stage == order.currentStage;
-                        final isPending = _getStageIndex(status.stage) > _getStageIndex(order.currentStage);
-                        
+                        final isPending =
+                            _getStageIndex(status.stage) >
+                            _getStageIndex(order.currentStage);
+
                         return _TimelineItem(
                           status: status,
                           isActive: !isPending,
@@ -589,9 +583,9 @@ class OrderDetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Map Section (Placeholder)
                 if (order.currentStage == OrderStage.orderInTransit)
                   Container(
@@ -660,7 +654,8 @@ class OrderDetailsScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           order.customerName,
@@ -708,9 +703,9 @@ class OrderDetailsScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Order Info
                 Container(
                   width: double.infinity,
@@ -733,9 +728,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           const Text(
                             "Add Order Note",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -751,9 +744,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               order.address,
-                              style: const TextStyle(
-                                color: Color(0xFF6B7280),
-                              ),
+                              style: const TextStyle(color: Color(0xFF6B7280)),
                             ),
                           ),
                         ],
@@ -761,7 +752,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 100), // Bottom padding
               ],
             ),
@@ -779,10 +770,10 @@ class OrderDetailsScreen extends StatelessWidget {
       OrderStage.orderInTransit,
       OrderStage.orderCompleted,
     ];
-    
+
     final currentIndex = _getStageIndex(order.currentStage);
     final pendingStages = allStages.skip(currentIndex + 1);
-    
+
     return pendingStages.map((stage) {
       return _TimelineItem(
         status: OrderStatus(
@@ -909,22 +900,16 @@ class _TimelineItemState extends State<_TimelineItem>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.elasticOut,
-    ));
-    
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     if (widget.isActive) {
       _controller.forward();
@@ -951,9 +936,13 @@ class _TimelineItemState extends State<_TimelineItem>
       animation: _controller,
       builder: (context, child) {
         return FadeTransition(
-          opacity: widget.isActive ? _fadeAnimation : const AlwaysStoppedAnimation(0.5),
+          opacity: widget.isActive
+              ? _fadeAnimation
+              : const AlwaysStoppedAnimation(0.5),
           child: ScaleTransition(
-            scale: widget.isCurrent ? _scaleAnimation : const AlwaysStoppedAnimation(1.0),
+            scale: widget.isCurrent
+                ? _scaleAnimation
+                : const AlwaysStoppedAnimation(1.0),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -967,11 +956,14 @@ class _TimelineItemState extends State<_TimelineItem>
                         height: 20,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: widget.isActive 
-                              ? const Color(0xFF10B981) 
+                          color: widget.isActive
+                              ? const Color(0xFF10B981)
                               : const Color(0xFFE5E7EB),
                           border: widget.isCurrent
-                              ? Border.all(color: const Color(0xFF10B981), width: 3)
+                              ? Border.all(
+                                  color: const Color(0xFF10B981),
+                                  width: 3,
+                                )
                               : null,
                         ),
                         child: widget.isActive
@@ -986,8 +978,8 @@ class _TimelineItemState extends State<_TimelineItem>
                         Container(
                           width: 2,
                           height: 40,
-                          color: widget.isActive 
-                              ? const Color(0xFF10B981) 
+                          color: widget.isActive
+                              ? const Color(0xFF10B981)
                               : const Color(0xFFE5E7EB),
                         ),
                     ],
@@ -1005,8 +997,8 @@ class _TimelineItemState extends State<_TimelineItem>
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
-                                color: widget.isActive 
-                                    ? Colors.black 
+                                color: widget.isActive
+                                    ? Colors.black
                                     : const Color(0xFF9CA3AF),
                               ),
                             ),
@@ -1025,8 +1017,8 @@ class _TimelineItemState extends State<_TimelineItem>
                         Text(
                           widget.status.message,
                           style: TextStyle(
-                            color: widget.isActive 
-                                ? const Color(0xFF6B7280) 
+                            color: widget.isActive
+                                ? const Color(0xFF6B7280)
                                 : const Color(0xFF9CA3AF),
                             fontSize: 14,
                           ),
@@ -1080,10 +1072,7 @@ class _TimelineItemState extends State<_TimelineItem>
 }
 
 class _CartItemTile extends StatelessWidget {
-  const _CartItemTile({
-    required this.item,
-    required this.onRemove,
-  });
+  const _CartItemTile({required this.item, required this.onRemove});
 
   final CartItem item;
   final VoidCallback onRemove;
@@ -1113,10 +1102,7 @@ class _CartItemTile extends StatelessWidget {
               color: const Color(0xFF10B981).withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.fastfood,
-              color: Color(0xFF10B981),
-            ),
+            child: const Icon(Icons.fastfood, color: Color(0xFF10B981)),
           ),
           const SizedBox(width: 12),
           Expanded(
