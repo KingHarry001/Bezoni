@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// import 'package:provider/provider.dart';
 import 'package:bezoni/components/cart_notifier.dart'; 
 import 'package:bezoni/screens/preferences.dart';
-import 'package:bezoni/screens/search_screen.dart';
-import 'package:bezoni/screens/cart.dart';
-import 'package:bezoni/screens/messages.dart';
-import 'package:bezoni/screens/profile_screen.dart';
+import 'package:bezoni/services/theme_service.dart';
+import 'package:bezoni/themes/theme_extensions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context: context,
       barrierDismissible: false,
       builder: (_) => Dialog(
+        backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(22),
@@ -57,32 +57,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
+                  color: context.successColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(40),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.celebration,
-                  color: Color(0xFF10B981),
+                  color: context.successColor,
                   size: 40,
                 ),
               ),
               const SizedBox(height: 14),
-              const Text(
+              Text(
                 "Welcome to Bezoni!",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
+                  color: context.textColor,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 "We're excited to have you on board! From hot meals to urgent parcels, we deliver what you need—fast and hassle-free. If you need help, support is a tap away in your profile.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.45,
-                  color: Color(0xFF6B7280),
+                  color: context.subtitleColor,
                 ),
               ),
               const SizedBox(height: 20),
@@ -91,17 +91,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 height: 44,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
+                    backgroundColor: context.primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     elevation: 0,
                   ),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     "Let's Go!",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.isDarkMode ? Colors.black : Colors.white,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -135,10 +135,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       listenable: _cartNotifier,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
+          backgroundColor: context.backgroundColor,
           body: SafeArea(
             child: FadeTransition(opacity: _fade, child: pages[_tab]),
-          ),);
+          ),
+        );
       },
     );
   }
@@ -167,34 +168,42 @@ class _HomeContent extends StatelessWidget {
       children: [
         // Header + search
         Container(
-          color: Colors.white,
+          color: context.surfaceColor,
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
           child: Column(
             children: [
               Row(
                 children: [
-                  const Icon(Icons.location_on, color: Color(0xFF6B7280)),
+                  Icon(Icons.location_on, color: context.subtitleColor),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       address,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF1A1A1A),
+                        color: context.textColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.notifications_outlined,
-                      color: Color(0xFF6B7280),
+                      color: context.subtitleColor,
                     ),
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("No new notifications")),
+                        SnackBar(
+                          content: const Text("No new notifications"),
+                          backgroundColor: context.primaryColor,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          margin: const EdgeInsets.all(16),
+                        ),
                       );
                     },
                   ),
@@ -205,21 +214,27 @@ class _HomeContent extends StatelessWidget {
                 onTap: onSearch,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
+                    color: context.isDarkMode 
+                        ? context.colors.surfaceVariant
+                        : const Color(0xFFF9FAFB),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    border: Border.all(
+                      color: context.isDarkMode
+                          ? context.colors.outline
+                          : const Color(0xFFE5E7EB),
+                    ),
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 14,
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.search, color: Color(0xFF6B7280)),
-                      SizedBox(width: 12),
+                      Icon(Icons.search, color: context.subtitleColor),
+                      const SizedBox(width: 12),
                       Text(
                         "Search for food, restaurants...",
-                        style: TextStyle(color: Color(0xFF6B7280)),
+                        style: TextStyle(color: context.subtitleColor),
                       ),
                     ],
                   ),
@@ -245,17 +260,20 @@ class _HomeContent extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Categories",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1A1A),
+                          color: context.textColor,
                         ),
                       ),
                       TextButton(
                         onPressed: onSeeAllCategories,
-                        child: const Text("See all"),
+                        child: Text(
+                          "See all",
+                          style: TextStyle(color: context.primaryColor),
+                        ),
                       ),
                     ],
                   ),
@@ -269,14 +287,14 @@ class _HomeContent extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 18),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     "Featured Restaurants",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
+                      color: context.textColor,
                     ),
                   ),
                 ),
@@ -339,15 +357,20 @@ class _PromoBanner extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF10B981), Color(0xFF059669)],
+        gradient: LinearGradient(
+          colors: context.isDarkMode
+              ? [
+                  context.primaryColor.withOpacity(0.8),
+                  context.primaryColor.withOpacity(0.6),
+                ]
+              : [context.primaryColor, context.primaryColor.withOpacity(0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.3),
+            color: context.primaryColor.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -358,20 +381,22 @@ class _PromoBanner extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   "Get 20% Off Your First Order!",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: context.isDarkMode ? Colors.black : Colors.white,
                     fontWeight: FontWeight.w900,
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "Use the code: WELCOME20",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: context.isDarkMode
+                        ? Colors.black.withOpacity(0.8)
+                        : Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -382,13 +407,15 @@ class _PromoBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: context.isDarkMode
+                  ? Colors.black.withOpacity(0.2)
+                  : Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text(
+            child: Text(
               "20%",
               style: TextStyle(
-                color: Colors.white,
+                color: context.isDarkMode ? Colors.black : Colors.white,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -467,20 +494,17 @@ class _CategoryTile extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
-            colors: [color.withOpacity(.10), Colors.white],
+            colors: [
+              color.withOpacity(context.isDarkMode ? 0.15 : 0.10),
+              context.surfaceColor,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: ThemeUtils.createShadow(context, elevation: 2),
         ),
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -489,7 +513,7 @@ class _CategoryTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(.12),
+                color: color.withOpacity(context.isDarkMode ? 0.20 : 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -498,10 +522,10 @@ class _CategoryTile extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1A1A1A),
+                color: context.textColor,
               ),
             ),
           ],
@@ -536,15 +560,9 @@ class _RestaurantCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: ThemeUtils.createShadow(context, elevation: 2),
         ),
         padding: const EdgeInsets.all(14),
         child: Row(
@@ -554,7 +572,7 @@ class _RestaurantCard extends StatelessWidget {
               child: Container(
                 width: 86,
                 height: 86,
-                color: color.withOpacity(.18),
+                color: color.withOpacity(context.isDarkMode ? 0.25 : 0.18),
                 child: Icon(Icons.restaurant, color: color, size: 42),
               ),
             ),
@@ -570,14 +588,16 @@ class _RestaurantCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: context.isDarkMode
+                            ? context.colors.surfaceVariant
+                            : const Color(0xFFF3F4F6),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         tag!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF6B7280),
+                          color: context.subtitleColor,
                         ),
                       ),
                     ),
@@ -585,18 +605,18 @@ class _RestaurantCard extends StatelessWidget {
                   ],
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
+                      color: context.textColor,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF6B7280),
+                      color: context.subtitleColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -617,18 +637,18 @@ class _RestaurantCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         rating,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
+                          color: context.textColor,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "• $meta",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF6B7280),
+                          color: context.subtitleColor,
                         ),
                       ),
                     ],
@@ -642,4 +662,3 @@ class _RestaurantCard extends StatelessWidget {
     );
   }
 }
-

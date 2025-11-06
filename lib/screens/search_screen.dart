@@ -1,4 +1,5 @@
 import 'package:bezoni/widgets/screen_wrapper.dart';
+import 'package:bezoni/themes/theme_extensions.dart';
 import 'package:flutter/material.dart';
 
 // Search Data Models
@@ -237,17 +238,17 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: context.surfaceColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Search",
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 18,
-            color: Color(0xFF374151),
+            color: context.textColor,
           ),
         ),
       ),
@@ -259,30 +260,30 @@ class _SearchScreenState extends State<SearchScreen>
             children: [
               // Search Bar
               Container(
-                color: Colors.white,
+                color: context.surfaceColor,
                 padding: const EdgeInsets.all(16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
+                    color: context.backgroundColor,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _focusNode.hasFocus
                           ? const Color(0xFF10B981)
-                          : const Color(0xFFE5E7EB),
+                          : context.dividerColor,
                     ),
                   ),
                   child: TextField(
                     controller: _searchController,
                     focusNode: _focusNode,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: "Search",
                       hintStyle: TextStyle(
-                        color: Color(0xFF9CA3AF),
+                        color: context.subtitleColor,
                         fontSize: 16,
                       ),
-                      prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                      prefixIcon: Icon(Icons.search, color: context.subtitleColor),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
                       ),
@@ -330,21 +331,21 @@ class _SearchScreenState extends State<SearchScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Recent",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF374151),
+                    color: context.textColor,
                   ),
                 ),
                 TextButton(
                   onPressed: () {
                     searchManager.clearRecentSearches();
                   },
-                  child: const Text(
+                  child: Text(
                     "Clear All",
-                    style: TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                    style: TextStyle(color: context.subtitleColor, fontSize: 14),
                   ),
                 ),
               ],
@@ -366,12 +367,12 @@ class _SearchScreenState extends State<SearchScreen>
           ],
 
           // Explore Brands
-          const Text(
+          Text(
             "Explore Brands",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -388,12 +389,12 @@ class _SearchScreenState extends State<SearchScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 "Popular",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
+                  color: context.textColor,
                 ),
               ),
               TextButton(
@@ -429,17 +430,17 @@ class _SearchScreenState extends State<SearchScreen>
     final searchManager = SearchManager();
 
     if (searchManager.isSearching) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
+            const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               "Searching...",
-              style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
+              style: TextStyle(color: context.subtitleColor, fontSize: 16),
             ),
           ],
         ),
@@ -460,15 +461,15 @@ class _SearchScreenState extends State<SearchScreen>
             children: [
               Text(
                 'Result for "$_currentQuery"',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF374151),
+                  color: context.textColor,
                 ),
               ),
               Text(
                 "(${searchManager.currentResults.length}) Set",
-                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                style: TextStyle(color: context.subtitleColor, fontSize: 14),
               ),
             ],
           ),
@@ -505,31 +506,31 @@ class _SearchScreenState extends State<SearchScreen>
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+              color: context.backgroundColor,
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE5E7EB), width: 2),
+              border: Border.all(color: context.dividerColor, width: 2),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.search_off,
               size: 48,
-              color: Color(0xFF9CA3AF),
+              color: context.subtitleColor,
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'No Result for "$_currentQuery"',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
+              color: context.textColor,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Check the Spelling or try\nusing another keyword",
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFF6B7280),
+              color: context.subtitleColor,
               fontSize: 14,
               height: 1.5,
             ),
@@ -614,11 +615,11 @@ class _AnimatedSearchTileState extends State<_AnimatedSearchTile>
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.cardColor,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: context.shadowColor,
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -637,25 +638,25 @@ class _AnimatedSearchTileState extends State<_AnimatedSearchTile>
                       Icon(
                         widget.icon,
                         size: 20,
-                        color: const Color(0xFF6B7280),
+                        color: context.subtitleColor,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           widget.text,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-                            color: Color(0xFF374151),
+                            color: context.textColor,
                           ),
                         ),
                       ),
                       if (widget.showRemove && widget.onRemove != null)
                         GestureDetector(
                           onTap: widget.onRemove,
-                          child: const Icon(
+                          child: Icon(
                             Icons.close,
                             size: 18,
-                            color: Color(0xFF9CA3AF),
+                            color: context.subtitleColor,
                           ),
                         ),
                     ],
@@ -727,11 +728,11 @@ class _RestaurantCardState extends State<_RestaurantCard>
             child: Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: context.shadowColor,
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -810,17 +811,17 @@ class _RestaurantCardState extends State<_RestaurantCard>
                         children: [
                           Text(
                             widget.restaurant.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF374151),
+                              color: context.textColor,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             widget.restaurant.description,
-                            style: const TextStyle(
-                              color: Color(0xFF6B7280),
+                            style: TextStyle(
+                              color: context.subtitleColor,
                               fontSize: 14,
                             ),
                           ),
@@ -833,9 +834,7 @@ class _RestaurantCardState extends State<_RestaurantCard>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF10B981,
-                                  ).withOpacity(0.1),
+                                  color: const Color(0xFF10B981).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -865,24 +864,22 @@ class _RestaurantCardState extends State<_RestaurantCard>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF6B7280,
-                                  ).withOpacity(0.1),
+                                  color: context.subtitleColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.access_time,
                                       size: 12,
-                                      color: Color(0xFF6B7280),
+                                      color: context.subtitleColor,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       "${widget.restaurant.deliveryTime} min",
-                                      style: const TextStyle(
-                                        color: Color(0xFF6B7280),
+                                      style: TextStyle(
+                                        color: context.subtitleColor,
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                       ),

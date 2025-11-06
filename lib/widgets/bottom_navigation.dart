@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:bezoni/core/navigation_service.dart';
 import 'package:bezoni/components/cart_notifier.dart';
+import 'package:bezoni/themes/theme_extensions.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
-  
-  const BottomNavigation({
-    Key? key,
-    required this.currentIndex,
-  }) : super(key: key);
+
+  const BottomNavigation({Key? key, required this.currentIndex})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +15,19 @@ class BottomNavigation extends StatelessWidget {
       listenable: CartNotifier(),
       builder: (context, _) {
         final cartNotifier = CartNotifier();
-        
+
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaceColor,
+            border: Border(
+              top: BorderSide(
+                color: context.dividerColor.withOpacity(0.5),
+                width: 0.5,
+              ),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: context.shadowColor,
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -55,8 +60,8 @@ class BottomNavigation extends StatelessWidget {
                     Icons.shopping_cart,
                     'Cart',
                     NavigationService.CART_INDEX,
-                    badge: cartNotifier.itemCount > 0 
-                        ? cartNotifier.itemCount.toString() 
+                    badge: cartNotifier.itemCount > 0
+                        ? cartNotifier.itemCount.toString()
                         : null,
                   ),
                   _buildNavItem(
@@ -115,17 +120,17 @@ class BottomNavigation extends StatelessWidget {
                     curve: Curves.easeInOut,
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? const Color(0xFF10B981).withOpacity(0.1) 
+                      color: isSelected
+                          ? context.primaryColor.withOpacity(0.1)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       isSelected ? selectedIcon : icon,
                       size: 24,
-                      color: isSelected 
-                          ? const Color(0xFF10B981) 
-                          : const Color(0xFF6B7280),
+                      color: isSelected
+                          ? context.primaryColor
+                          : context.subtitleColor,
                     ),
                   ),
                   if (badge != null)
@@ -138,8 +143,8 @@ class BottomNavigation extends StatelessWidget {
                           minWidth: 18,
                           minHeight: 18,
                         ),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEF4444),
+                        decoration: BoxDecoration(
+                          color: context.errorColor,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -163,9 +168,9 @@ class BottomNavigation extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected 
-                      ? const Color(0xFF10B981) 
-                      : const Color(0xFF6B7280),
+                  color: isSelected
+                      ? context.primaryColor
+                      : context.subtitleColor,
                 ),
                 child: Text(label),
               ),

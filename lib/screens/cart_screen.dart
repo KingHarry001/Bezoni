@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bezoni/components/cart_notifier.dart';
+import 'package:bezoni/services/theme_service.dart';
 
 // Enhanced Order Model
 class Order {
@@ -61,13 +63,12 @@ class OrderManager extends ChangeNotifier {
   List<Order> get orders => _orders;
 
   void addOrder(Order order) {
-    _orders.insert(0, order); // Add to beginning for latest first
+    _orders.insert(0, order);
     notifyListeners();
     _simulateOrderProgress(order);
   }
 
   void _simulateOrderProgress(Order order) {
-    // Simulate order progression with realistic timing
     Future.delayed(const Duration(seconds: 2), () {
       if (order.currentStage == OrderStage.paymentConfirmation) {
         _updateOrderStage(order, OrderStage.paymentReceived, "Order started");
@@ -125,7 +126,7 @@ class OrderManager extends ChangeNotifier {
 }
 
 /// =====================
-/// Enhanced Cart Screen
+/// Enhanced Cart Screen with Theme Support
 /// =====================
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -135,16 +136,15 @@ class CartScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
           title: const Text("Cart"),
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
-          bottom: const TabBar(
-            labelColor: Color(0xFF10B981),
-            unselectedLabelColor: Color(0xFF6B7280),
-            indicatorColor: Color(0xFF10B981),
-            tabs: [
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          surfaceTintColor: Theme.of(context).colorScheme.surface,bottom: TabBar(
+            labelColor: const Color(0xFF10B981),
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            indicatorColor: const Color(0xFF10B981),
+            tabs: const [
               Tab(text: "Current Cart"),
               Tab(text: "Orders"),
             ],
@@ -153,6 +153,17 @@ class CartScreen extends StatelessWidget {
         body: const TabBarView(children: [_CartTab(), _OrdersTab()]),
       ),
     );
+  }
+
+  IconData _getThemeIcon(AppTheme theme) {
+    switch (theme) {
+      case AppTheme.light:
+        return Icons.light_mode;
+      case AppTheme.dark:
+        return Icons.dark_mode;
+      case AppTheme.system:
+        return Icons.auto_mode;
+    }
   }
 }
 
@@ -167,28 +178,30 @@ class _CartTab extends StatelessWidget {
         final cart = CartNotifier();
 
         return cart.items.isEmpty
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.shopping_cart_outlined,
                       size: 80,
-                      color: Color(0xFF6B7280),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       "Your cart is empty",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF6B7280),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       "Add items to get started",
-                      style: TextStyle(color: Color(0xFF6B7280)),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),
@@ -209,18 +222,19 @@ class _CartTab extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               "Total:",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             Text(
@@ -268,7 +282,6 @@ class _CartTab extends StatelessWidget {
     final orderId =
         "BFA${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}";
 
-    // Create initial order with first status
     final order = Order(
       id: orderId,
       items: List.from(cart.items),
@@ -285,13 +298,9 @@ class _CartTab extends StatelessWidget {
       ],
     );
 
-    // Add order to manager
     OrderManager().addOrder(order);
-
-    // Clear cart
     cart.clear();
 
-    // Show success message and navigate to orders tab
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Order $orderId placed successfully!"),
@@ -299,7 +308,6 @@ class _CartTab extends StatelessWidget {
       ),
     );
 
-    // Switch to orders tab
     DefaultTabController.of(context).animateTo(1);
   }
 }
@@ -315,28 +323,30 @@ class _OrdersTab extends StatelessWidget {
         final orders = OrderManager().orders;
 
         if (orders.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.receipt_long_outlined,
                   size: 80,
-                  color: Color(0xFF6B7280),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   "No orders yet",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF6B7280),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   "Your orders will appear here",
-                  style: TextStyle(color: Color(0xFF6B7280)),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
               ],
             ),
@@ -377,11 +387,11 @@ class _OrderCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).shadowColor.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -400,9 +410,10 @@ class _OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     "Order ${order.id}",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Container(
@@ -411,9 +422,7 @@ class _OrderCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(
-                        order.currentStage,
-                      ).withOpacity(0.1),
+                      color: _getStatusColor(order.currentStage).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -430,7 +439,10 @@ class _OrderCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 order.brandNames,
-                style: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -438,15 +450,16 @@ class _OrderCard extends StatelessWidget {
                 children: [
                   Text(
                     _formatOrderStatus(order),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 18,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
-                    color: Color(0xFF6B7280),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ],
               ),
@@ -499,7 +512,7 @@ class _OrderCard extends StatelessWidget {
   }
 }
 
-// Order Details Screen
+// Order Details Screen with Back Button
 class OrderDetailsScreen extends StatelessWidget {
   const OrderDetailsScreen({super.key, required this.order});
 
@@ -508,7 +521,37 @@ class OrderDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          "Order Details",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.share,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Share feature coming soon!")),
+              );
+            },
+          ),
+        ],
+      ),
       body: ListenableBuilder(
         listenable: OrderManager(),
         builder: (context, _) {
@@ -518,32 +561,34 @@ class OrderDetailsScreen extends StatelessWidget {
                 // Order Header
                 Container(
                   width: double.infinity,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         order.brandNames,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         "Order Status",
-                        style: const TextStyle(
-                          color: Color(0xFF6B7280),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           fontSize: 14,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _formatOrderStatus(order.currentStage),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -557,7 +602,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   width: double.infinity,
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -586,13 +631,13 @@ class OrderDetailsScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Map Section (Placeholder)
+                // Map Section
                 if (order.currentStage == OrderStage.orderInTransit)
                   Container(
                     height: 200,
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
@@ -602,21 +647,21 @@ class OrderDetailsScreen extends StatelessWidget {
                           Container(
                             width: double.infinity,
                             height: double.infinity,
-                            color: const Color(0xFFF3F4F6),
-                            child: const Center(
+                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            child: Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
                                     Icons.map_outlined,
                                     size: 48,
-                                    color: Color(0xFF6B7280),
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                   ),
-                                  SizedBox(height: 8),
+                                  const SizedBox(height: 8),
                                   Text(
                                     "Tracking Map",
                                     style: TextStyle(
-                                      color: Color(0xFF6B7280),
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -631,11 +676,11 @@ class OrderDetailsScreen extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: Theme.of(context).shadowColor.withOpacity(0.2),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -659,15 +704,16 @@ class OrderDetailsScreen extends StatelessWidget {
                                       children: [
                                         Text(
                                           order.customerName,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 12,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                         Text(
                                           "Dispatch",
-                                          style: const TextStyle(
-                                            color: Color(0xFF6B7280),
+                                          style: TextStyle(
+                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                             fontSize: 10,
                                           ),
                                         ),
@@ -679,18 +725,18 @@ class OrderDetailsScreen extends StatelessWidget {
                                     children: [
                                       IconButton(
                                         onPressed: () {},
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.phone,
                                           size: 20,
-                                          color: Color(0xFF6B7280),
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                         ),
                                       ),
                                       IconButton(
                                         onPressed: () {},
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.message,
                                           size: 20,
-                                          color: Color(0xFF6B7280),
+                                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                         ),
                                       ),
                                     ],
@@ -712,7 +758,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -720,31 +766,36 @@ class OrderDetailsScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.note_add_outlined,
                             size: 20,
-                            color: Color(0xFF6B7280),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             "Add Order Note",
-                            style: TextStyle(fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: 20,
-                            color: Color(0xFF6B7280),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               order.address,
-                              style: const TextStyle(color: Color(0xFF6B7280)),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
                             ),
                           ),
                         ],
@@ -753,7 +804,7 @@ class OrderDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 100), // Bottom padding
+                const SizedBox(height: 100),
               ],
             ),
           );
@@ -845,26 +896,6 @@ class OrderDetailsScreen extends StatelessWidget {
       case OrderStage.orderCompleted:
         return "Order Completed";
     }
-  }
-
-  void _contactSupport(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Contact Support"),
-        content: const Text("How would you like to contact support?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Call"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Message"),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -958,7 +989,7 @@ class _TimelineItemState extends State<_TimelineItem>
                           shape: BoxShape.circle,
                           color: widget.isActive
                               ? const Color(0xFF10B981)
-                              : const Color(0xFFE5E7EB),
+                              : Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                           border: widget.isCurrent
                               ? Border.all(
                                   color: const Color(0xFF10B981),
@@ -980,7 +1011,7 @@ class _TimelineItemState extends State<_TimelineItem>
                           height: 40,
                           color: widget.isActive
                               ? const Color(0xFF10B981)
-                              : const Color(0xFFE5E7EB),
+                              : Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
                         ),
                     ],
                   ),
@@ -998,15 +1029,15 @@ class _TimelineItemState extends State<_TimelineItem>
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                                 color: widget.isActive
-                                    ? Colors.black
-                                    : const Color(0xFF9CA3AF),
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                               ),
                             ),
                             if (widget.isActive)
                               Text(
                                 _formatTime(widget.status.timestamp),
-                                style: const TextStyle(
-                                  color: Color(0xFF6B7280),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1018,8 +1049,8 @@ class _TimelineItemState extends State<_TimelineItem>
                           widget.status.message,
                           style: TextStyle(
                             color: widget.isActive
-                                ? const Color(0xFF6B7280)
-                                : const Color(0xFF9CA3AF),
+                                ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6)
+                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                             fontSize: 14,
                           ),
                         ),
@@ -1028,8 +1059,8 @@ class _TimelineItemState extends State<_TimelineItem>
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               _formatDuration(widget.status.estimatedDuration),
-                              style: const TextStyle(
-                                color: Color(0xFF6B7280),
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                 fontSize: 12,
                               ),
                             ),
@@ -1082,11 +1113,11 @@ class _CartItemTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Theme.of(context).shadowColor.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1111,15 +1142,16 @@ class _CartItemTile extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   "From ${item.restaurant}",
-                  style: const TextStyle(
-                    color: Color(0xFF6B7280),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -1138,9 +1170,10 @@ class _CartItemTile extends StatelessWidget {
             children: [
               Text(
                 "₦${(item.price * item.quantity).toStringAsFixed(0)}",
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),

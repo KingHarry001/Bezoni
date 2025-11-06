@@ -1,3 +1,4 @@
+import 'package:bezoni/themes/theme_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -96,7 +97,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -110,18 +111,21 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       "Let's personalize your experience",
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1A1A),
+                        color: context.textColor,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
+                    Text(
                       "Set your preferences for faster, better deliveries.",
-                      style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: context.subtitleColor,
+                      ),
                     ),
 
                     const SizedBox(height: 22),
@@ -166,9 +170,12 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                     const SizedBox(height: 24),
                     _sectionTitle("What type of food do you enjoy?"),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       "Select one",
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.subtitleColor,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Wrap(
@@ -197,9 +204,9 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       _selectedAllergies.isEmpty
                           ? "None selected"
                           : _selectedAllergies.join(", "),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: context.subtitleColor,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -260,18 +267,18 @@ class _PreferencesScreenState extends State<PreferencesScreen>
 
   Widget _sectionTitle(String text) => Text(
     text,
-    style: const TextStyle(
+    style: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w700,
-      color: Color(0xFF1A1A1A),
+      color: context.textColor,
     ),
   );
 
   Widget _decoratedField({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: context.cardColor,
+        border: Border.all(color: context.dividerColor),
         borderRadius: BorderRadius.circular(12),
       ),
       child: child,
@@ -291,9 +298,9 @@ class _PreferencesScreenState extends State<PreferencesScreen>
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: selected && !outlined ? primary : Colors.white,
+          color: selected && !outlined ? primary : context.cardColor,
           border: Border.all(
-            color: selected ? primary : const Color(0xFFE5E7EB),
+            color: selected ? primary : context.dividerColor,
             width: selected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(10),
@@ -313,7 +320,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             color: selected && !outlined
                 ? Colors.white
-                : const Color(0xFF374151),
+                : context.textColor,
           ),
         ),
       ),

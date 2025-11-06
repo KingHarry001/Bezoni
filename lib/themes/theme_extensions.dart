@@ -1,4 +1,3 @@
-// Create theme_extensions.dart file
 import 'package:flutter/material.dart';
 
 // Extension for easy access to theme colors
@@ -19,19 +18,19 @@ extension ThemeExtensions on BuildContext {
   Color get primaryColor => colors.primary;
   Color get backgroundColor => colors.background;
   Color get surfaceColor => colors.surface;
-  Color get cardColor => isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+  Color get cardColor => isDarkMode ? const Color(0xFF1E293B) : Colors.white;
   Color get textColor => colors.onSurface;
-  Color get subtitleColor => colors.onSurface.withOpacity(0.7);
-  Color get dividerColor => isDarkMode ? Colors.grey[800]! : Colors.grey[300]!;
+  Color get subtitleColor => colors.onSurface.withOpacity(0.6);
+  Color get dividerColor => isDarkMode ? const Color(0xFF475569) : const Color(0xFFE2E8F0);
   Color get shadowColor => isDarkMode 
       ? Colors.black.withOpacity(0.3) 
       : Colors.black.withOpacity(0.1);
   
   // Status colors that work in both themes
   Color get successColor => isDarkMode ? const Color(0xFF4CAF50) : const Color(0xFF1B5E20);
-  Color get errorColor => isDarkMode ? const Color(0xFFCF6679) : Colors.red;
-  Color get warningColor => isDarkMode ? const Color(0xFFFFB74D) : const Color(0xFFFF9800);
-  Color get infoColor => isDarkMode ? const Color(0xFF64B5F6) : const Color(0xFF2196F3);
+  Color get errorColor => isDarkMode ? const Color(0xFFEF4444) : const Color(0xFFDC2626);
+  Color get warningColor => isDarkMode ? const Color(0xFFFFAB40) : const Color(0xFFFF9800);
+  Color get infoColor => isDarkMode ? const Color(0xFF42A5F5) : const Color(0xFF1565C0);
 }
 
 // Custom theme-aware widgets

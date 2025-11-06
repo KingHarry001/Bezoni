@@ -1,31 +1,16 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(BezoniApp());
-}
-
-class BezoniApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Bezoni',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        fontFamily: 'SF Pro Display',
-      ),
-      home: OnboardingScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bezoni/routes/app_routes.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({Key? key}) : super(key: key);
+
   @override
-  _OnboardingScreenState createState() => _OnboardingScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  PageController _pageController = PageController();
+  final PageController _pageController = PageController();
   int _currentPage = 0;
 
   final List<OnboardingData> _onboardingData = [
@@ -36,6 +21,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       illustration: Image.asset(
         "assets/onboarding/Layer_1.png",
         fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.delivery_dining, size: 200, color: Color(0xFF2ECC40));
+        },
       ),
     ),
     OnboardingData(
@@ -45,6 +33,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       illustration: Image.asset(
         "assets/onboarding/Layer_2.png",
         fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.location_on, size: 200, color: Color(0xFF2ECC40));
+        },
       ),
     ),
     OnboardingData(
@@ -54,18 +45,68 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       illustration: Image.asset(
         "assets/onboarding/Layer_3.png",
         fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.payment, size: 200, color: Color(0xFF2ECC40));
+        },
       ),
     ),
     OnboardingData(
       title: "Create Account",
-      description: "Choose details to create new account",
+      description: "Choose how you want to get started",
       illustration: Image.asset(
         "assets/onboarding/Layer_4.png",
         fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.account_circle, size: 200, color: Color(0xFF2ECC40));
+        },
       ),
       isCreateAccount: true,
     ),
   ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _markOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('first_launch', false);
+    await prefs.setBool('completed_onboarding', true);
+  }
+
+  void _navigateToLogin() async {
+    await _markOnboardingComplete();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
+  }
+
+  void _navigateToSignup() async {
+    await _markOnboardingComplete();
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, AppRoutes.signup);
+  }
+
+  void _signUpWithGoogle() {
+    // TODO: Implement Google sign up
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Google sign-up coming soon!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _signUpWithApple() {
+    // TODO: Implement Apple sign up
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Apple sign-up coming soon!'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,10 +115,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-
+            const SizedBox(height: 10),
+            
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -96,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // Bottom section
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 children: [
                   Row(
@@ -104,36 +143,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     children: List.generate(
                       _onboardingData.length,
                       (index) => AnimatedContainer(
-                        duration: Duration(milliseconds: 300),
-                        margin: EdgeInsets.symmetric(horizontal: 4),
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: _currentPage == index ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
                           color: _currentPage == index
-                              ? Color(0xFF2ECC40)
-                              : Color(0xFFE8E8E8),
+                              ? const Color(0xFF2ECC40)
+                              : const Color(0xFFE8E8E8),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                     ),
                   ),
 
-                  SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
                   // Get Started button or Sign up buttons
                   if (_currentPage < _onboardingData.length - 1)
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
                         onPressed: () {
                           _pageController.nextPage(
-                            duration: Duration(milliseconds: 300),
+                            duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF2ECC40),
+                          backgroundColor: const Color(0xFF2ECC40),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -141,7 +180,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           elevation: 0,
                           shadowColor: Colors.transparent,
                         ),
-                        child: Text(
+                        child: const Text(
                           "Get Started",
                           style: TextStyle(
                             fontSize: 16,
@@ -156,26 +195,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Column(
                       children: [
                         // Google Sign Up
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              _signUpWithGoogle();
-                            },
+                            onPressed: _signUpWithGoogle,
                             icon: Container(
                               width: 20,
                               height: 20,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 image: DecorationImage(
-                                  image: AssetImage(
-                                    "assets/icons/google_icon.png",
-                                  ),
+                                  image: AssetImage("assets/icons/google_icon.png"),
                                   fit: BoxFit.contain,
                                 ),
                               ),
+                              child: const Icon(Icons.g_mobiledata, size: 20, color: Colors.red),
                             ),
-                            label: Text(
+                            label: const Text(
                               "Sign Up with Google",
                               style: TextStyle(
                                 fontSize: 16,
@@ -184,7 +220,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Color(0xFFE0E0E0)),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -193,22 +229,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
 
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
                         // Apple Sign Up
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              _signUpWithApple();
-                            },
-                            icon: Icon(
+                            onPressed: _signUpWithApple,
+                            icon: const Icon(
                               Icons.apple,
                               color: Color(0xFF1A1A1A),
                               size: 20,
                             ),
-                            label: Text(
+                            label: const Text(
                               "Sign Up with Apple",
                               style: TextStyle(
                                 fontSize: 16,
@@ -217,7 +251,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                             ),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Color(0xFFE0E0E0)),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -226,7 +260,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
 
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
                         // OR divider
                         Row(
@@ -234,10 +268,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: Color(0xFFE0E0E0),
+                                color: const Color(0xFFE0E0E0),
                               ),
                             ),
-                            Padding(
+                            const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
                                 "OR",
@@ -251,30 +285,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Expanded(
                               child: Container(
                                 height: 1,
-                                color: Color(0xFFE0E0E0),
+                                color: const Color(0xFFE0E0E0),
                               ),
                             ),
                           ],
                         ),
 
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
                         // Continue with Email
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/signup');
-                            },
+                            onPressed: _navigateToSignup,
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Color(0xFFE0E0E0)),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               backgroundColor: Colors.white,
                             ),
-                            child: Text(
+                            child: const Text(
                               "Continue with Email Address",
                               style: TextStyle(
                                 fontSize: 16,
@@ -285,13 +317,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
 
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
                         // Already have account
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            const Text(
                               "Already Have An Account? ",
                               style: TextStyle(
                                 color: Color(0xFF8E8E8E),
@@ -299,10 +331,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {
-                                _navigateToLogin();
-                              },
-                              child: Text(
+                              onTap: _navigateToLogin,
+                              child: const Text(
                                 "Log In",
                                 style: TextStyle(
                                   color: Color(0xFF2ECC40),
@@ -316,7 +346,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ],
                     ),
 
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
                   // Skip button (only show on first three pages)
                   if (_currentPage < _onboardingData.length - 2)
@@ -324,11 +354,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: () {
                         _pageController.animateToPage(
                           _onboardingData.length - 1,
-                          duration: Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         );
                       },
-                      child: Text(
+                      child: const Text(
                         "Skip",
                         style: TextStyle(
                           color: Color(0xFF8E8E8E),
@@ -344,80 +374,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       ),
     );
-  }
-
-  void _completeOnboarding() {
-    // Navigate to login/signup screen or main app
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Welcome to Bezoni!"),
-        content: Text("Onboarding completed. Ready to get started?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _signUpWithGoogle() {
-    // Implement Google sign up
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Google Sign Up"),
-        content: Text(
-          "Google sign up functionality would be implemented here.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _signUpWithApple() {
-    // Implement Apple sign up
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Apple Sign Up"),
-        content: Text("Apple sign up functionality would be implemented here."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _continueWithEmail() {
-    // Navigate to email signup form
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Email Sign Up"),
-        content: Text("Email signup form would be shown here."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToLogin() {
-    Navigator.pushNamed(context, '/business-login');
   }
 }
 
@@ -444,13 +400,13 @@ class OnboardingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
 
             // Illustration
-            Container(
+            SizedBox(
               height: data.isCreateAccount ? 240 : 320,
               child: data.illustration,
             ),
@@ -461,7 +417,7 @@ class OnboardingPage extends StatelessWidget {
             Text(
               data.title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1A1A1A),
@@ -470,13 +426,13 @@ class OnboardingPage extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Description
             Text(
               data.description,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: Color(0xFF666666),
                 height: 1.5,
@@ -484,7 +440,7 @@ class OnboardingPage extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
           ],
         ),
       ),

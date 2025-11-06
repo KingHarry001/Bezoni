@@ -1,3 +1,4 @@
+import 'package:bezoni/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -82,7 +83,7 @@ class _SupportScreenState extends State<SupportScreen>
           children: [
             _buildHelpTab(),
             _buildContactTab(),
-            _buildTicketsTab(),
+            // _buildTicketsTab(),
             _buildFAQTab(),
           ],
         ),
@@ -511,64 +512,64 @@ class _SupportScreenState extends State<SupportScreen>
     );
   }
 
-  Widget _buildTicketsTab() {
-    return Consumer<ApiService>(
-      builder: (context, apiService, child) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Support Tickets',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: context.textColor,
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => _tabController.animateTo(1),
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text(
-                      'New Ticket',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: context.primaryColor,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Track your submitted tickets and their status',
-                style: TextStyle(fontSize: 16, color: context.subtitleColor),
-              ),
-              const SizedBox(height: 32),
+  // Widget _buildTicketsTab() {
+  //   return Consumer<ApiService>(
+  //     builder: (context, apiService, child) {
+  //       return SingleChildScrollView(
+  //         padding: const EdgeInsets.all(20),
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Text(
+  //                   'Support Tickets',
+  //                   style: TextStyle(
+  //                     fontSize: 24,
+  //                     fontWeight: FontWeight.bold,
+  //                     color: context.textColor,
+  //                   ),
+  //                 ),
+  //                 ElevatedButton.icon(
+  //                   onPressed: () => _tabController.animateTo(1),
+  //                   icon: const Icon(Icons.add, color: Colors.white),
+  //                   label: const Text(
+  //                     'New Ticket',
+  //                     style: TextStyle(
+  //                       color: Colors.white,
+  //                       fontWeight: FontWeight.w600,
+  //                     ),
+  //                   ),
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: context.primaryColor,
+  //                     elevation: 0,
+  //                     padding: const EdgeInsets.symmetric(
+  //                       horizontal: 16,
+  //                       vertical: 12,
+  //                     ),
+  //                     shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(12),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 8),
+  //             Text(
+  //               'Track your submitted tickets and their status',
+  //               style: TextStyle(fontSize: 16, color: context.subtitleColor),
+  //             ),
+  //             const SizedBox(height: 32),
 
-              // Mock tickets - replace with real data from API
-              _buildTicketsList(),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  //             // Mock tickets - replace with real data from API
+  //             _buildTicketsList(),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildTicketsList() {
     final mockTickets = [

@@ -22,6 +22,7 @@ class NavigationService {
   static const String categoriesRoute = '/categories';
   static const String restaurantRoute = '/restaurant';
   static const String preferencesRoute = '/preferences';
+  static const String settingsRoute = '/settings';
 
   // Map route names to indices
   int getIndexFromRouteName(String route) {

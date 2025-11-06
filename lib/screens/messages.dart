@@ -1,3 +1,4 @@
+import 'package:bezoni/themes/theme_extensions.dart';
 import 'package:flutter/material.dart';
 
 // Message Models
@@ -6,7 +7,7 @@ class ChatMessage {
   final String text;
   final DateTime timestamp;
   final bool isFromUser;
-  final MessageStatus status;
+  MessageStatus status;
 
   ChatMessage({
     required this.id,
@@ -186,12 +187,12 @@ class ChatManager extends ChangeNotifier {
 
       // Simulate message status updates
       Future.delayed(const Duration(milliseconds: 500), () {
-        newMessage.status == MessageStatus.sent;
+        newMessage.status = MessageStatus.sent;
         notifyListeners();
       });
 
       Future.delayed(const Duration(seconds: 1), () {
-        newMessage.status == MessageStatus.delivered;
+        newMessage.status = MessageStatus.delivered;
         notifyListeners();
       });
     }
@@ -275,7 +276,7 @@ class _MessagesScreenState extends State<MessagesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: const Text(
           "Messages",
@@ -284,15 +285,15 @@ class _MessagesScreenState extends State<MessagesScreen>
             fontSize: 18,
           ),
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: context.surfaceColor,
         elevation: 0,
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(
+            icon: Icon(
               Icons.search,
-              color: Color(0xFF6B7280),
+              color: context.subtitleColor,
             ),
           ),
         ],
@@ -420,11 +421,11 @@ class _AnimatedChatTileState extends State<_AnimatedChatTile>
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.cardColor,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: context.shadowColor,
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -482,6 +483,7 @@ class _AnimatedChatTileState extends State<_AnimatedChatTile>
                                     ? FontWeight.w700
                                     : FontWeight.w600,
                                 fontSize: 16,
+                                color: context.textColor,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -492,7 +494,7 @@ class _AnimatedChatTileState extends State<_AnimatedChatTile>
                               style: TextStyle(
                                 color: widget.thread.hasUnreadMessages
                                     ? const Color(0xFF374151)
-                                    : const Color(0xFF6B7280),
+                                    : context.subtitleColor,
                                 fontSize: 14,
                                 fontWeight: widget.thread.hasUnreadMessages
                                     ? FontWeight.w500
@@ -512,7 +514,7 @@ class _AnimatedChatTileState extends State<_AnimatedChatTile>
                               fontSize: 12,
                               color: widget.thread.hasUnreadMessages
                                   ? const Color(0xFF10B981)
-                                  : const Color(0xFF6B7280),
+                                  : context.subtitleColor,
                               fontWeight: widget.thread.hasUnreadMessages
                                   ? FontWeight.w600
                                   : FontWeight.w400,
@@ -593,7 +595,7 @@ class _ChatScreenState extends State<ChatScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Row(
           children: [
@@ -656,8 +658,8 @@ class _ChatScreenState extends State<ChatScreen>
             ),
           ],
         ),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: context.surfaceColor,
+        surfaceTintColor: context.surfaceColor,
       ),
       body: Column(
         children: [
@@ -808,11 +810,11 @@ class _MessageBubbleState extends State<_MessageBubble>
                       decoration: BoxDecoration(
                         color: widget.message.isFromUser
                             ? const Color(0xFF10B981)
-                            : Colors.white,
+                            : context.cardColor,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: context.shadowColor,
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -826,7 +828,7 @@ class _MessageBubbleState extends State<_MessageBubble>
                             style: TextStyle(
                               color: widget.message.isFromUser
                                   ? Colors.white
-                                  : const Color(0xFF374151),
+                                  : context.textColor,
                               fontSize: 14,
                             ),
                           ),
@@ -839,7 +841,7 @@ class _MessageBubbleState extends State<_MessageBubble>
                                 style: TextStyle(
                                   color: widget.message.isFromUser
                                       ? Colors.white.withOpacity(0.7)
-                                      : const Color(0xFF6B7280),
+                                      : context.subtitleColor,
                                   fontSize: 10,
                                 ),
                               ),
@@ -937,7 +939,7 @@ class _ChatInputState extends State<_ChatInput> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: context.surfaceColor,
       padding: const EdgeInsets.all(16),
       child: SafeArea(
         child: Row(
@@ -945,7 +947,7 @@ class _ChatInputState extends State<_ChatInput> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
+                  color: context.backgroundColor,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum AppTheme { light, dark, system }
 
 class ThemeService extends ChangeNotifier {
-  static const String _themeKey = 'vendor_app_theme';
+  static const String _themeKey = 'bezoni_app_theme';
   AppTheme _currentTheme = AppTheme.system;
   SharedPreferences? _prefs;
   bool _initialized = false;
@@ -63,6 +63,7 @@ class ThemeService extends ChangeNotifier {
     try {
       if (_prefs != null) {
         await _prefs!.setInt(_themeKey, _currentTheme.index);
+        debugPrint('Theme saved: ${_currentTheme.name}');
       }
     } catch (e) {
       debugPrint('Failed to save theme: $e');
@@ -76,6 +77,7 @@ class ThemeService extends ChangeNotifier {
       await _saveTheme();
       _updateSystemUIOverlay();
       notifyListeners();
+      debugPrint('Theme changed to: ${theme.name}');
     }
   }
 
@@ -90,7 +92,7 @@ class ThemeService extends ChangeNotifier {
             ? Brightness.light 
             : Brightness.dark,
         systemNavigationBarColor: brightness == Brightness.dark
-            ? const Color(0xFF1E293B)
+            ? const Color(0xFF0F172A) // Dark navy for dark theme
             : Colors.white,
         systemNavigationBarIconBrightness: brightness == Brightness.dark
             ? Brightness.light
@@ -156,6 +158,46 @@ class ThemeService extends ChangeNotifier {
         return Icons.dark_mode;
       case AppTheme.system:
         return Icons.auto_mode;
+    }
+  }
+
+  // Get theme description
+  String get themeDescription {
+    switch (_currentTheme) {
+      case AppTheme.light:
+        return 'Clean and bright';
+      case AppTheme.dark:
+        return 'Easy on the eyes';
+      case AppTheme.system:
+        return 'Follow device settings';
+    }
+  }
+
+  // Toggle between light and dark (useful for quick switching)
+  Future<void> toggleTheme() async {
+    final newTheme = _currentTheme == AppTheme.light 
+        ? AppTheme.dark 
+        : AppTheme.light;
+    await setTheme(newTheme);
+  }
+
+  // Reset to default theme
+  Future<void> resetToDefault() async {
+    await setTheme(AppTheme.system);
+  }
+
+  // Clear saved preferences
+  Future<void> clearThemePreference() async {
+    try {
+      if (_prefs != null) {
+        await _prefs!.remove(_themeKey);
+        _currentTheme = AppTheme.system;
+        _updateSystemUIOverlay();
+        notifyListeners();
+        debugPrint('Theme preference cleared');
+      }
+    } catch (e) {
+      debugPrint('Failed to clear theme preference: $e');
     }
   }
 }
