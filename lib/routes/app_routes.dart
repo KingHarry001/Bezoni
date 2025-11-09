@@ -15,6 +15,18 @@ import 'package:bezoni/screens/cart_screen.dart';
 import 'package:bezoni/screens/messages.dart';
 import 'package:bezoni/screens/profile_screen.dart';
 
+import 'package:bezoni/screens/personal_details_screen.dart';
+import 'package:bezoni/screens/order_history_screen.dart';
+import 'package:bezoni/screens/favorites_screen.dart';
+import 'package:bezoni/screens/promo_codes_screen.dart';
+import 'package:bezoni/screens/notifications_settings_screen.dart';
+import 'package:bezoni/screens/help_faq_screen.dart';
+import 'package:bezoni/screens/terms_conditions_screen.dart';
+// import 'package:bezoni/screens/privacy_policy_screen.dart';
+import 'package:bezoni/screens/addresses_screen.dart';
+import 'package:bezoni/screens/payment_methods_screen.dart';
+
+
 class AppRoutes {
   // Authentication routes
   static const String splash = '/';
@@ -38,6 +50,15 @@ class AppRoutes {
   static const String preferences = '/preferences';
   static const String settingscreen = '/settings';
   static const String support = '/support';
+  static const String personalDetails = '/personal_details';
+  static const String orderHistory = '/order_history';
+  static const String favorites = '/favorites';
+  static const String promoCodes = '/promo_code';
+  static const String notifications = '/notifications';
+  static const String help = '/help';
+  static const String terms_conditions = '/terms';
+  static const String addresses = '/addresses';
+  static const String payment = '/payment_methods';
 
   // Generate routes
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -136,12 +157,110 @@ class AppRoutes {
           settings: settings,
         );
 
+      case personalDetails:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const PersonalDetailsScreen(),
+          ),
+          settings: settings,
+        );
+
+      case orderHistory:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const OrderHistoryScreen(),
+          ),
+          settings: settings,
+        );
+
+      case promoCodes:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const PromoCodesScreen(),
+          ),
+          settings: settings,
+        );
+
+      case favorites:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const FavoritesScreen(),
+          ),
+          settings: settings,
+        );
+
+      case notifications:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const NotificationsSettingsScreen(),
+          ),
+          settings: settings,
+        );
+
+      case help:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const HelpFaqScreen(),
+          ),
+          settings: settings,
+        );
+
+      case terms_conditions:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const TermsConditionsScreen(),
+          ),
+          settings: settings,
+        );
+
+      case addresses:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const AddressesScreen(),
+          ),
+          settings: settings,
+        );
+
+      case payment:
+        return MaterialPageRoute(
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const PaymentMethodsScreen(),
+          ),
+          settings: settings,
+        );
+
       default:
         return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
+          builder: (_) => ScreenWrapper(
+            currentRoute: settings.name!,
+            showBottomNav: false,
+            child: const PaymentMethodsScreen(),
           ),
+          settings: settings,
         );
+        // return MaterialPageRoute(
+        //   builder: (_) => Scaffold(
+        //     body: Center(child: Text('No route defined for ${settings.name}')),
+        //   ),
+        // );
     }
   }
 

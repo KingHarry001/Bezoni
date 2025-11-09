@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bezoni/core/api_client.dart';
 import 'package:bezoni/themes/theme_extensions.dart';
+import 'package:bezoni/utils/auth_utils.dart'; // Import the new utility
 
 class UserLoginScreen extends StatefulWidget {
   const UserLoginScreen({Key? key}) : super(key: key);
@@ -16,13 +17,40 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
   
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// Load saved credentials if "Remember Me" was previously enabled
+  Future<void> _loadSavedCredentials() async {
+    final credentials = await AuthUtils.loadSavedCredentials();
+    
+    setState(() {
+      _rememberMe = credentials['rememberMe'] as bool;
+      _emailController.text = credentials['email'] as String;
+      _passwordController.text = credentials['password'] as String;
+    });
+  }
+
+  /// Save credentials if "Remember Me" is enabled
+  Future<void> _saveCredentials() async {
+    await AuthUtils.saveCredentials(
+      rememberMe: _rememberMe,
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
   }
 
   Future<void> _handleLogin() async {
@@ -42,6 +70,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     });
 
     try {
+      // Save/clear credentials based on remember me checkbox
+      await _saveCredentials();
+
       // Call API
       final response = await ApiClient().login(
         email: _emailController.text.trim(),
@@ -57,6 +88,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
             content: Text('Welcome back, ${response.data?.user?.name ?? "User"}!'),
             backgroundColor: context.successColor,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
 
@@ -205,27 +239,73 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                   
                   const SizedBox(height: 16),
 
-                  // Forgot password
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to forgot password screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Forgot password feature coming soon!'),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: context.primaryColor,
-                          fontWeight: FontWeight.w600,
+                  // Remember Me & Forgot Password Row
+                  Row(
+                    children: [
+                      // Remember Me Checkbox
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _rememberMe = !_rememberMe;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: _rememberMe
+                                    ? context.primaryColor
+                                    : Colors.transparent,
+                                border: Border.all(
+                                  color: _rememberMe
+                                      ? context.primaryColor
+                                      : context.dividerColor,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: _rememberMe
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Remember me',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: context.textColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+
+                      const Spacer(),
+
+                      // Forgot password
+                      TextButton(
+                        onPressed: () {
+                          _showForgotPasswordDialog();
+                        },
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: context.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   
                   const SizedBox(height: 32),
@@ -265,6 +345,40 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                     ),
                   ),
                   
+                  const SizedBox(height: 24),
+
+                  // Remember me info
+                  if (_rememberMe)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: context.primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: context.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 16,
+                            color: context.primaryColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Your credentials will be saved securely on this device',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.textColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   const SizedBox(height: 24),
 
                   // Sign up link
@@ -364,6 +478,131 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
           validator: validator,
         ),
       ],
+    );
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController(text: _emailController.text);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: context.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.lock_reset, color: context.primaryColor),
+            const SizedBox(width: 8),
+            Text(
+              'Forgot Password',
+              style: TextStyle(color: context.textColor),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Enter your email address and we\'ll send you a link to reset your password.',
+              style: TextStyle(
+                color: context.subtitleColor,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              style: TextStyle(color: context.textColor),
+              decoration: InputDecoration(
+                labelText: 'Email Address',
+                labelStyle: TextStyle(color: context.subtitleColor),
+                prefixIcon: Icon(Icons.email_outlined, color: context.primaryColor),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: context.primaryColor, width: 2),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: context.subtitleColor),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (emailController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Please enter your email address'),
+                    backgroundColor: context.errorColor,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context);
+              
+              // Call forgot password API
+              try {
+                final response = await ApiClient().forgotPassword(
+                  emailController.text.trim(),
+                );
+
+                if (!mounted) return;
+
+                if (response.isSuccess) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Password reset link sent to your email!'),
+                      backgroundColor: context.successColor,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(response.errorMessage ?? 'Failed to send reset link'),
+                      backgroundColor: context.errorColor,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('An error occurred. Please try again.'),
+                    backgroundColor: context.errorColor,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Send Reset Link',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

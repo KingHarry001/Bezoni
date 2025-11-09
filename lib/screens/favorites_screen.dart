@@ -2,6 +2,9 @@
 import 'package:bezoni/core/api_client.dart';
 import 'package:flutter/material.dart';
 import '../../../themes/theme_extensions.dart';
+import '../core/api_client.dart';
+import '../core/api_models.dart';
+
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
