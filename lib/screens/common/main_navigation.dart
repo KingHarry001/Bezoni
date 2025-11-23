@@ -1,15 +1,11 @@
-import 'package:bezoni/screens/cart_screen.dart';
-import 'package:bezoni/screens/messages.dart';
-import 'package:bezoni/screens/profile_screen.dart';
-import 'package:bezoni/screens/search_screen.dart';
+
+import 'package:bezoni/screens/common/cart_screen.dart';
+import 'package:bezoni/screens/common/search_screen.dart';
+import 'package:bezoni/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:bezoni/themes/theme_extensions.dart';
-// Import your tab screens
 import 'package:bezoni/screens/home_screen.dart';
-// import 'package:bezoni/screens/search_screen.dart';
-// import 'package:bezoni/screens/cart_screen.dart';
-// import 'package:bezoni/screens/messages_screen.dart';
-// import 'package:bezoni/screens/profile_screen.dart';
+import 'package:bezoni/core/api_client.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({Key? key}) : super(key: key);
@@ -18,13 +14,20 @@ class MainNavigation extends StatefulWidget {
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation> with WidgetsBindingObserver {
   late int _currentIndex;
   late PageController _pageController;
+  final ApiClient _apiClient = ApiClient();
+  
+  // Cart state
+  int _cartItemCount = 0;
+  bool _isLoadingCart = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
     // Get initial index from route arguments if provided
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args =
@@ -34,14 +37,75 @@ class _MainNavigationState extends State<MainNavigation> {
         _onTabTapped(initialIndex);
       }
     });
+    
     _currentIndex = 0;
     _pageController = PageController(initialPage: 0);
+    
+    // Load cart count initially
+    _loadCartCount();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh cart when app comes to foreground
+    if (state == AppLifecycleState.resumed) {
+      _loadCartCount();
+    }
+  }
+
+  // Load cart count from API
+  Future<void> _loadCartCount() async {
+    if (_isLoadingCart) return;
+    
+    setState(() {
+      _isLoadingCart = true;
+    });
+
+    try {
+      await _apiClient.initialize();
+      final response = await _apiClient.getCart();
+      
+      if (response.isSuccess && response.data != null) {
+        final cart = response.data!;
+        
+        // Use totalItems from CartResponse (already an int)
+        if (mounted) {
+          setState(() {
+            _cartItemCount = cart.totalItems;
+            _isLoadingCart = false;
+          });
+        }
+        
+        debugPrint('🛒 Cart updated: $_cartItemCount items');
+      } else {
+        if (mounted) {
+          setState(() {
+            _cartItemCount = 0;
+            _isLoadingCart = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading cart count: $e');
+      if (mounted) {
+        setState(() {
+          _cartItemCount = 0; // Reset to 0 on error
+          _isLoadingCart = false;
+        });
+      }
+    }
+  }
+
+  // Public method to refresh cart from child screens
+  void refreshCart() {
+    _loadCartCount();
   }
 
   void _onTabTapped(int index) {
@@ -53,12 +117,23 @@ class _MainNavigationState extends State<MainNavigation> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+    
+    // Refresh cart count when switching tabs
+    if (index == 2) {
+      // Going to cart tab
+      _loadCartCount();
+    }
   }
 
   void _onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
     });
+    
+    // Refresh cart count when page changes
+    if (index == 2) {
+      _loadCartCount();
+    }
   }
 
   @override
@@ -70,17 +145,14 @@ class _MainNavigationState extends State<MainNavigation> {
         onPageChanged: _onPageChanged,
         physics: const NeverScrollableScrollPhysics(), // Disable swipe
         children: [
-          // Home Tab
-          HomeScreen(),
+          // Home Tab - Pass callback to refresh cart
+          HomeScreen(onCartUpdated: _loadCartCount),
 
           // Search Tab
           SearchScreen(),
 
-          // Cart Tab
-          CartScreen(),
-
-          // Messages Tab
-          MessagesScreen(),
+          // Cart Tab - Pass callback to refresh cart
+          CartScreen(onCartUpdated: _loadCartCount),
 
           // Profile Tab
           ProfileScreen(),
@@ -120,22 +192,14 @@ class _MainNavigationState extends State<MainNavigation> {
                   activeIcon: Icons.shopping_cart,
                   label: 'Cart',
                   index: 2,
-                  showBadge: true,
-                  badgeCount: 3,
-                ),
-                _buildNavItem(
-                  icon: Icons.message_outlined,
-                  activeIcon: Icons.message,
-                  label: 'Messages',
-                  index: 3,
-                  showBadge: true,
-                  badgeCount: 2,
+                  showBadge: _cartItemCount > 0,
+                  badgeCount: _cartItemCount,
                 ),
                 _buildNavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: 'Profile',
-                  index: 4,
+                  index: 3,
                 ),
               ],
             ),
@@ -189,7 +253,7 @@ class _MainNavigationState extends State<MainNavigation> {
                           minHeight: 16,
                         ),
                         child: Text(
-                          badgeCount > 9 ? '9+' : badgeCount.toString(),
+                          badgeCount > 99 ? '99+' : badgeCount.toString(),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -215,44 +279,6 @@ class _MainNavigationState extends State<MainNavigation> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderScreen({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 80, color: context.subtitleColor.withOpacity(0.5)),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: context.textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 16, color: context.subtitleColor),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Coming Soon!',
-            style: TextStyle(
-              fontSize: 14,
-              color: context.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

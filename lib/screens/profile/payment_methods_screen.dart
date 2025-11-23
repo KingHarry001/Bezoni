@@ -1,8 +1,8 @@
 // File: lib/screens/profile/screens/payment_methods_screen.dart
+import 'package:bezoni/widgets/profile_modals.dart';
 import 'package:flutter/material.dart';
 import '../../../themes/theme_extensions.dart';
 import '../../../models/payment_method.dart';
-import '../widgets/profile_modals.dart';
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});

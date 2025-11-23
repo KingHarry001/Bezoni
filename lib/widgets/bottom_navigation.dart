@@ -66,13 +66,6 @@ class BottomNavigation extends StatelessWidget {
                   ),
                   _buildNavItem(
                     context,
-                    Icons.chat_bubble_outline,
-                    Icons.chat_bubble,
-                    'Messages',
-                    NavigationService.MESSAGES_INDEX,
-                  ),
-                  _buildNavItem(
-                    context,
                     Icons.person_outline,
                     Icons.person,
                     'Profile',

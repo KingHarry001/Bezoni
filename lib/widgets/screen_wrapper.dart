@@ -89,24 +89,6 @@ class CartTabWrapper extends StatelessWidget {
   }
 }
 
-/// Wrapper for messages screen
-class MessagesTabWrapper extends StatelessWidget {
-  final Widget child;
-
-  const MessagesTabWrapper({
-    Key? key,
-    required this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ScreenWrapper(
-      currentRoute: NavigationService.messagesRoute,
-      child: child,
-    );
-  }
-}
-
 /// Wrapper for profile screen
 class ProfileTabWrapper extends StatelessWidget {
   final Widget child;

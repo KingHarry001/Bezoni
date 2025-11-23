@@ -21,28 +21,26 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Setup animations
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.2, 0.7, curve: Curves.elasticOut),
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.2, 0.7, curve: Curves.elasticOut),
+      ),
+    );
 
     // Start animation
     _controller.forward();
@@ -60,17 +58,17 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Check app initialization status
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Check if this is first launch
       final bool isFirstLaunch = prefs.getBool('first_launch') ?? true;
-      
+
       // Check if user has completed onboarding
-      final bool hasCompletedOnboarding = 
+      final bool hasCompletedOnboarding =
           prefs.getBool('completed_onboarding') ?? false;
-      
+
       // Check if user has auth token
       final String? authToken = prefs.getString('auth_token');
-      
+
       // Determine navigation path
       if (isFirstLaunch || !hasCompletedOnboarding) {
         // First time user - show onboarding
@@ -133,14 +131,14 @@ class _SplashScreenState extends State<SplashScreen>
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: context.isDarkMode 
-            ? Brightness.light 
+        statusBarIconBrightness: context.isDarkMode
+            ? Brightness.light
             : Brightness.dark,
       ),
     );
 
     return Scaffold(
-      backgroundColor: context.isDarkMode 
+      backgroundColor: context.isDarkMode
           ? const Color(0xFF0A0A0A)
           : Colors.white,
       body: AnimatedBuilder(
@@ -166,7 +164,9 @@ class _SplashScreenState extends State<SplashScreen>
                             ? []
                             : [
                                 BoxShadow(
-                                  color: const Color(0xFF2ECC40).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF2ECC40,
+                                  ).withOpacity(0.1),
                                   blurRadius: 30,
                                   spreadRadius: 10,
                                 ),
@@ -179,8 +179,8 @@ class _SplashScreenState extends State<SplashScreen>
                         fit: BoxFit.contain,
                         // Add color filter for dark mode if needed
                         color: context.isDarkMode ? Colors.white : null,
-                        colorBlendMode: context.isDarkMode 
-                            ? BlendMode.srcIn 
+                        colorBlendMode: context.isDarkMode
+                            ? BlendMode.srcIn
                             : null,
                         errorBuilder: (context, error, stackTrace) {
                           // Fallback if image not found
@@ -197,8 +197,8 @@ class _SplashScreenState extends State<SplashScreen>
                                 style: TextStyle(
                                   fontSize: 80,
                                   fontWeight: FontWeight.bold,
-                                  color: context.isDarkMode 
-                                      ? Colors.black 
+                                  color: context.isDarkMode
+                                      ? Colors.black
                                       : Colors.white,
                                 ),
                               ),
@@ -208,22 +208,10 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
-                    // App name with theme-aware color
-                    Text(
-                      'Bezoni',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: context.textColor,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    
+
                     // Tagline
                     Text(
-                      'Deliver Anything, Anywhere',
+                      'Order Anything, Anywhere',
                       style: TextStyle(
                         fontSize: 14,
                         color: context.subtitleColor,
@@ -231,7 +219,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 60),
-                    
+
                     // Loading indicator
                     SizedBox(
                       width: 40,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:bezoni/core/api_client.dart';
 import 'package:bezoni/themes/theme_extensions.dart';
-import 'package:bezoni/utils/auth_utils.dart'; // Import the new utility
+import 'package:bezoni/utils/auth_utils.dart';
+import 'package:bezoni/routes/app_routes.dart';
 
 class UserLoginScreen extends StatefulWidget {
   const UserLoginScreen({Key? key}) : super(key: key);
@@ -33,24 +34,22 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     super.dispose();
   }
 
+  void _handleBack() {
+    // Simply pop back
+    Navigator.pop(context);
+  }
+
   /// Load saved credentials if "Remember Me" was previously enabled
   Future<void> _loadSavedCredentials() async {
     final credentials = await AuthUtils.loadSavedCredentials();
     
-    setState(() {
-      _rememberMe = credentials['rememberMe'] as bool;
-      _emailController.text = credentials['email'] as String;
-      _passwordController.text = credentials['password'] as String;
-    });
-  }
-
-  /// Save credentials if "Remember Me" is enabled
-  Future<void> _saveCredentials() async {
-    await AuthUtils.saveCredentials(
-      rememberMe: _rememberMe,
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    if (mounted) {
+      setState(() {
+        _rememberMe = credentials['rememberMe'] as bool;
+        _emailController.text = credentials['email'] as String;
+        _passwordController.text = credentials['password'] as String;
+      });
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -71,7 +70,11 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
 
     try {
       // Save/clear credentials based on remember me checkbox
-      await _saveCredentials();
+      await AuthUtils.saveCredentials(
+        rememberMe: _rememberMe,
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
       // Call API
       final response = await ApiClient().login(
@@ -88,6 +91,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
             content: Text('Welcome back, ${response.data?.user?.name ?? "User"}!'),
             backgroundColor: context.successColor,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -95,7 +99,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         );
 
         // Navigate to home
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       } else {
         // Show error message
         setState(() {
@@ -116,6 +120,10 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     }
   }
 
+  void _navigateToSignup() {
+    Navigator.pushNamed(context, AppRoutes.signup);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,7 +133,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.textColor),
-          onPressed: () => Navigator.pop(context),
+          onPressed: _handleBack,
         ),
       ),
       body: SafeArea(
@@ -323,14 +331,14 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
-                        disabledBackgroundColor: Colors.grey[300],
+                        disabledBackgroundColor: const Color(0xFF2ECC40).withOpacity(0.6),
                       ),
                       child: _isLoading
                           ? const SizedBox(
                               height: 24,
                               width: 24,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                                strokeWidth: 2.5,
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
@@ -392,10 +400,8 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                           fontSize: 14,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/signup');
-                        },
+                      GestureDetector(
+                        onTap: _navigateToSignup,
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(
@@ -568,6 +574,10 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                       content: const Text('Password reset link sent to your email!'),
                       backgroundColor: context.successColor,
                       behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   );
                 } else {
@@ -576,6 +586,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                       content: Text(response.errorMessage ?? 'Failed to send reset link'),
                       backgroundColor: context.errorColor,
                       behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   );
                 }
@@ -586,6 +599,9 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                     content: const Text('An error occurred. Please try again.'),
                     backgroundColor: context.errorColor,
                     behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 );
               }

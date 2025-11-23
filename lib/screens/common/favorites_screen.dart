@@ -1,10 +1,9 @@
 // File: lib/screens/profile/screens/favorites_screen.dart
 import 'package:bezoni/core/api_client.dart';
+import 'package:bezoni/core/api_models.dart';
+import 'package:bezoni/screens/restaurant/restaurant_details_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../themes/theme_extensions.dart';
-import '../core/api_client.dart';
-import '../core/api_models.dart';
-
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -71,21 +70,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               child: CircularProgressIndicator(color: context.primaryColor),
             )
           : _errorMessage != null
-              ? _buildErrorState()
-              : _favorites.isEmpty
-                  ? _buildEmptyState()
-                  : RefreshIndicator(
-                      onRefresh: _loadFavorites,
-                      color: context.primaryColor,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _favorites.length,
-                        itemBuilder: (context, index) {
-                          final vendor = _favorites[index];
-                          return _buildFavoriteCard(vendor);
-                        },
-                      ),
-                    ),
+          ? _buildErrorState()
+          : _favorites.isEmpty
+          ? _buildEmptyState()
+          : RefreshIndicator(
+              onRefresh: _loadFavorites,
+              color: context.primaryColor,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _favorites.length,
+                itemBuilder: (context, index) {
+                  final vendor = _favorites[index];
+                  return _buildFavoriteCard(vendor);
+                },
+              ),
+            ),
     );
   }
 
@@ -101,7 +100,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _navigateToVendor(vendor),
+          onTap: () {
+            // Navigate to RestaurantDetailsScreen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RestaurantDetailsScreen(vendor: vendor),
+              ),
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -121,7 +128,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Restaurant Info
                 Expanded(
                   child: Column(
@@ -181,13 +188,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Favorite Button
                 IconButton(
-                  icon: Icon(
-                    Icons.favorite,
-                    color: context.errorColor,
-                  ),
+                  icon: Icon(Icons.favorite, color: context.errorColor),
                   onPressed: () => _removeFavorite(vendor),
                 ),
               ],
@@ -271,11 +275,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: context.errorColor,
-            ),
+            Icon(Icons.error_outline, size: 64, color: context.errorColor),
             const SizedBox(height: 16),
             Text(
               'Something went wrong',
@@ -289,10 +289,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             Text(
               _errorMessage ?? 'Failed to load favorites',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: context.subtitleColor,
-              ),
+              style: TextStyle(fontSize: 14, color: context.subtitleColor),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -337,9 +334,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: context.surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Remove Favorite',
           style: TextStyle(color: context.textColor),
@@ -375,10 +370,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Remove',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Remove', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

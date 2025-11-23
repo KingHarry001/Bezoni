@@ -1,7 +1,7 @@
 import 'package:bezoni/services/theme_service.dart';
+import 'package:bezoni/services/socket_service.dart'; // Add this
 import 'package:bezoni/themes/app_themes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:bezoni/core/api_client.dart';
 import 'package:bezoni/routes/app_routes.dart';
@@ -16,19 +16,33 @@ void main() async {
   final themeService = ThemeService();
   await themeService.init();
   
-  runApp(BezoniApp(themeService: themeService));
+  // Initialize Socket.IO service (will connect when user logs in)
+  final socketService = SocketService();
+  
+  runApp(BezoniApp(
+    themeService: themeService,
+    socketService: socketService,
+  ));
 }
 
 class BezoniApp extends StatelessWidget {
   final ThemeService themeService;
+  final SocketService socketService;
   
-  const BezoniApp({Key? key, required this.themeService}) : super(key: key);
+  const BezoniApp({
+    Key? key,
+    required this.themeService,
+    required this.socketService,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Wrap the entire app with ChangeNotifierProvider
-    return ChangeNotifierProvider<ThemeService>.value(
-      value: themeService,
+    // Wrap with MultiProvider to provide both services
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ThemeService>.value(value: themeService),
+        Provider<SocketService>.value(value: socketService),
+      ],
       child: Consumer<ThemeService>(
         builder: (context, themeService, child) {
           return MaterialApp(

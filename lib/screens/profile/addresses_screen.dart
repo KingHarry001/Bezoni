@@ -1,8 +1,8 @@
 // File: lib/screens/profile/screens/addresses_screen.dart
+import 'package:bezoni/widgets/profile_modals.dart';
 import 'package:flutter/material.dart';
 import '../../../themes/theme_extensions.dart';
 import '../../../models/address.dart';
-import '../widgets/profile_modals.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});

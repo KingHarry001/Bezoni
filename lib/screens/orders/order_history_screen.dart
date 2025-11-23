@@ -1,8 +1,8 @@
 // File: lib/screens/profile/screens/order_history_screen.dart
+import 'package:bezoni/widgets/profile_modals.dart';
 import 'package:flutter/material.dart';
 import '../../../themes/theme_extensions.dart';
 import '../../../models/order.dart';
-import '../widgets/profile_modals.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});

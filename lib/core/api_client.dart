@@ -30,13 +30,15 @@ class ApiClient {
       final prefs = await SharedPreferences.getInstance();
       _authToken = prefs.getString('auth_token');
       _refreshToken = prefs.getString('refresh_token');
-      
+
       if (_authToken != null) {
-        debugPrint('✅ API Client initialized with token: ${_authToken!.substring(0, 20)}...');
+        debugPrint(
+          '✅ API Client initialized with token: ${_authToken!.substring(0, 20)}...',
+        );
       } else {
         debugPrint('⚠️ API Client initialized without token');
       }
-      
+
       _isInitialized = true;
     } catch (e) {
       debugPrint('❌ Error initializing API client: $e');
@@ -48,13 +50,13 @@ class ApiClient {
     try {
       _authToken = accessToken;
       _refreshToken = refreshToken;
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', accessToken);
       if (refreshToken != null) {
         await prefs.setString('refresh_token', refreshToken);
       }
-      
+
       debugPrint('✅ Auth tokens saved');
       debugPrint('   Access Token: ${accessToken.substring(0, 20)}...');
     } catch (e) {
@@ -67,11 +69,11 @@ class ApiClient {
     try {
       _authToken = null;
       _refreshToken = null;
-      
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('auth_token');
       await prefs.remove('refresh_token');
-      
+
       debugPrint('✅ Auth tokens cleared');
     } catch (e) {
       debugPrint('❌ Error clearing tokens: $e');
@@ -84,14 +86,14 @@ class ApiClient {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
-    
+
     if (_authToken != null && _authToken!.isNotEmpty) {
       headers['Authorization'] = 'Bearer $_authToken';
       debugPrint('🔑 Using token: ${_authToken!.substring(0, 20)}...');
     } else {
       debugPrint('⚠️ No auth token available');
     }
-    
+
     return headers;
   }
 
@@ -111,7 +113,6 @@ class ApiClient {
     T Function(dynamic)? parser,
   }) async {
     try {
-      // Ensure client is initialized
       if (!_isInitialized) {
         await initialize();
       }
@@ -148,7 +149,6 @@ class ApiClient {
     T Function(dynamic)? parser,
   }) async {
     try {
-      // Ensure client is initialized
       if (!_isInitialized) {
         await initialize();
       }
@@ -339,7 +339,6 @@ class ApiClient {
           return ApiResponse.success(data as T);
         }
       } else if (response.statusCode == 401) {
-        // Unauthorized - token expired or invalid
         debugPrint('⚠️ 401 Unauthorized - clearing token');
         clearToken();
         return ApiResponse.error('Session expired. Please login again.');
@@ -348,7 +347,6 @@ class ApiClient {
       } else if (response.statusCode == 404) {
         return ApiResponse.error('Resource not found.');
       } else if (response.statusCode == 422) {
-        // Validation error
         try {
           final errorData = jsonDecode(response.body);
           final message = errorData['message'] ?? 'Validation error';
@@ -359,7 +357,6 @@ class ApiClient {
       } else if (response.statusCode >= 500) {
         return ApiResponse.error('Server error. Please try again later.');
       } else {
-        // Other client errors
         try {
           final errorData = jsonDecode(response.body);
           final message = errorData['message'] ?? 'An error occurred';
@@ -400,12 +397,8 @@ class ApiClient {
       parser: (data) => AuthResponse.fromJson(data),
     );
 
-    // Use the token getter for backward compatibility
     if (response.isSuccess && response.data?.token != null) {
-      await _saveTokens(
-        response.data!.token!,
-        response.data!.refreshToken,
-      );
+      await _saveTokens(response.data!.token!, response.data!.refreshToken);
     }
 
     return response;
@@ -421,12 +414,8 @@ class ApiClient {
       parser: (data) => AuthResponse.fromJson(data),
     );
 
-    // Use the token getter for backward compatibility
     if (response.isSuccess && response.data?.token != null) {
-      await _saveTokens(
-        response.data!.token!,
-        response.data!.refreshToken,
-      );
+      await _saveTokens(response.data!.token!, response.data!.refreshToken);
       debugPrint('✅ Login successful - tokens saved');
     }
 
@@ -446,12 +435,61 @@ class ApiClient {
     );
   }
 
-  Future<ApiResponse<UserProfile>> getProfile() async {
-    return get<UserProfile>(
-      '/auth/me',
-      parser: (data) => UserProfile.fromJson(data),
-    );
-  }
+
+Future<ApiResponse<UserProfile>> getProfile() async {
+  debugPrint('📤 Getting user profile...');
+  
+  return get<UserProfile>(
+    '/auth/me',
+    parser: (data) {
+      debugPrint('🔍 PARSING PROFILE');
+      debugPrint('   Full response: $data');
+      
+      try {
+        Map<String, dynamic> userData;
+        
+        // Backend returns: { "success": true, "data": { email, name, phone, ... } }
+        if (data is Map<String, dynamic>) {
+          if (data.containsKey('data')) {
+            userData = data['data'] as Map<String, dynamic>;
+            debugPrint('   Extracted from data wrapper: $userData');
+          } else {
+            userData = data;
+            debugPrint('   Using root data: $userData');
+          }
+          
+          // Build UserProfile directly (don't use fromJson to avoid issues)
+          final profile = UserProfile(
+            id: userData['id'] as String? ?? '',
+            role: userData['role'] as String? ?? 'USER',
+            name: userData['name'] as String? ?? 'User',
+            email: userData['email'] as String? ?? '',
+            phone: userData['phone'] as String?,
+            address: userData['address'] as String?,
+            emailVerified: userData['isAccountVerified'] as bool? ?? false,
+            createdAt: userData['createdAt'] != null 
+                ? DateTime.tryParse(userData['createdAt'] as String)
+                : null,
+          );
+          
+          debugPrint('✅ SUCCESSFULLY PARSED:');
+          debugPrint('   Name: ${profile.name}');
+          debugPrint('   Email: ${profile.email}');
+          debugPrint('   Phone: ${profile.phone}');
+          debugPrint('   Verified: ${profile.emailVerified}');
+          
+          return profile;
+        }
+        
+        throw Exception('Invalid data type: ${data.runtimeType}');
+      } catch (e, stack) {
+        debugPrint('❌ PARSING FAILED: $e');
+        debugPrint('   Stack: $stack');
+        rethrow;
+      }
+    },
+  );
+}
 
   Future<ApiResponse<UserProfile>> updateProfile({
     String? name,
@@ -484,12 +522,49 @@ class ApiClient {
     );
   }
 
+  // Update these two methods in api_client.dart
+
+  // Email verification - sends verification code to user's email
   Future<ApiResponse<void>> sendVerificationEmail() async {
-    return post('/auth/send-verification');
+    debugPrint('📤 Sending verification email...');
+    final response = await post('/auth/send-verification');
+
+    if (response.isSuccess) {
+      debugPrint('✅ Verification email sent successfully');
+    } else {
+      debugPrint(
+        '❌ Failed to send verification email: ${response.errorMessage}',
+      );
+    }
+
+    return response;
   }
 
+  // Email verification - verify the code
   Future<ApiResponse<void>> verifyEmail(String token) async {
-    return post('/auth/verify-email', body: {'token': token});
+    debugPrint('📤 Verifying email with token: ${token.substring(0, 3)}...');
+
+    final response = await post('/auth/verify-email', body: {'token': token});
+
+    if (response.isSuccess) {
+      debugPrint('✅ Email verified successfully!');
+
+      // IMPORTANT: After verification, refresh the user profile to get updated status
+      try {
+        final profileResponse = await getProfile();
+        if (profileResponse.isSuccess && profileResponse.data != null) {
+          debugPrint(
+            '✅ Profile refreshed - emailVerified: ${profileResponse.data!.emailVerified}',
+          );
+        }
+      } catch (e) {
+        debugPrint('⚠️ Could not refresh profile after verification: $e');
+      }
+    } else {
+      debugPrint('❌ Email verification failed: ${response.errorMessage}');
+    }
+
+    return response;
   }
 
   // ============================================================================
@@ -555,14 +630,57 @@ class ApiClient {
     );
   }
 
+  // FIXED: Better parsing for orders response
   Future<ApiResponse<List<OrderResponse>>> getUserOrders() async {
     return get<List<OrderResponse>>(
       '/order/user/order',
       parser: (data) {
-        if (data is List) {
-          return data.map((e) => OrderResponse.fromJson(e)).toList();
+        try {
+          debugPrint('🔍 Parsing orders response...');
+          debugPrint('   Response type: ${data.runtimeType}');
+
+          // Backend returns: { "success": true, "data": { "orders": [...], "pagination": {...} } }
+          if (data is Map<String, dynamic>) {
+            final responseData = data['data'] as Map<String, dynamic>?;
+
+            if (responseData != null) {
+              final ordersList = responseData['orders'] as List?;
+
+              if (ordersList != null && ordersList.isNotEmpty) {
+                debugPrint('✅ Found ${ordersList.length} orders');
+                return ordersList
+                    .map(
+                      (e) => OrderResponse.fromJson(e as Map<String, dynamic>),
+                    )
+                    .toList();
+              }
+            }
+
+            // Check if orders are at root level
+            if (data['orders'] is List) {
+              final ordersList = data['orders'] as List;
+              debugPrint('✅ Found ${ordersList.length} orders at root');
+              return ordersList
+                  .map((e) => OrderResponse.fromJson(e as Map<String, dynamic>))
+                  .toList();
+            }
+          }
+
+          // Fallback for direct list response
+          if (data is List) {
+            debugPrint('✅ Parsing ${data.length} orders (direct list)');
+            return data
+                .map((e) => OrderResponse.fromJson(e as Map<String, dynamic>))
+                .toList();
+          }
+
+          debugPrint('⚠️ No orders found in response');
+          return [];
+        } catch (e, stack) {
+          debugPrint('❌ Error parsing orders: $e');
+          debugPrint('   Stack: $stack');
+          return [];
         }
-        return [];
       },
     );
   }
@@ -586,28 +704,32 @@ class ApiClient {
   // PRODUCT ENDPOINTS
   // ============================================================================
 
-  Future<ApiResponse<List<Product>>> getProducts({String? search}) async {
-    return get<List<Product>>(
-      '/order/products',
-      queryParams: search != null ? {'search': search} : null,
-      parser: (data) {
-        if (data is List) {
-          return data.map((e) => Product.fromJson(e)).toList();
-        }
-        return [];
-      },
-    );
-  }
-
   Future<ApiResponse<List<Product>>> getFoods({String? search}) async {
     return get<List<Product>>(
       '/product/foods',
       queryParams: search != null ? {'search': search} : null,
       parser: (data) {
-        if (data is List) {
-          return data.map((e) => Product.fromJson(e)).toList();
+        try {
+          if (data is Map<String, dynamic>) {
+            final foodsData = data['data'] ?? data['foods'];
+            if (foodsData is List) {
+              return foodsData
+                  .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                  .toList();
+            }
+          }
+
+          if (data is List) {
+            return data
+                .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                .toList();
+          }
+
+          return [];
+        } catch (e) {
+          debugPrint('❌ Error parsing foods: $e');
+          return [];
         }
-        return [];
       },
     );
   }
@@ -615,7 +737,13 @@ class ApiClient {
   Future<ApiResponse<Product>> getFoodById(String id) async {
     return get<Product>(
       '/product/foods/$id',
-      parser: (data) => Product.fromJson(data),
+      parser: (data) {
+        // Handle wrapped response
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return Product.fromJson(data['data'] as Map<String, dynamic>);
+        }
+        return Product.fromJson(data as Map<String, dynamic>);
+      },
     );
   }
 
@@ -630,19 +758,234 @@ class ApiClient {
       '/vendor/availablevendors',
       queryParams: search != null ? {'search': search} : null,
       parser: (data) {
-        if (data is List) {
-          return data.map((e) => Vendor.fromJson(e)).toList();
+        try {
+          debugPrint('🔍 Parsing vendors response...');
+          debugPrint('   Raw data type: ${data.runtimeType}');
+
+          // Handle the actual API response structure
+          if (data is Map<String, dynamic>) {
+            // First check if there's a 'data' wrapper
+            if (data.containsKey('data')) {
+              final innerData = data['data'];
+
+              // Check if 'data' contains 'vendors' array
+              if (innerData is Map<String, dynamic> &&
+                  innerData.containsKey('vendors')) {
+                final vendorsList = innerData['vendors'] as List?;
+
+                if (vendorsList != null && vendorsList.isNotEmpty) {
+                  debugPrint(
+                    '✅ Found ${vendorsList.length} vendors in data.vendors',
+                  );
+                  return vendorsList
+                      .map((e) => Vendor.fromJson(e as Map<String, dynamic>))
+                      .toList();
+                }
+              }
+
+              // Check if 'data' is directly the vendors array
+              if (innerData is List) {
+                debugPrint('✅ Found ${innerData.length} vendors in data array');
+                return innerData
+                    .map((e) => Vendor.fromJson(e as Map<String, dynamic>))
+                    .toList();
+              }
+            }
+
+            // Check for vendors at root level
+            if (data.containsKey('vendors')) {
+              final vendorsList = data['vendors'] as List?;
+              if (vendorsList != null && vendorsList.isNotEmpty) {
+                debugPrint('✅ Found ${vendorsList.length} vendors at root');
+                return vendorsList
+                    .map((e) => Vendor.fromJson(e as Map<String, dynamic>))
+                    .toList();
+              }
+            }
+          }
+
+          // Handle direct array response
+          if (data is List) {
+            debugPrint('✅ Found ${data.length} vendors (direct array)');
+            return data
+                .map((e) => Vendor.fromJson(e as Map<String, dynamic>))
+                .toList();
+          }
+
+          debugPrint('⚠️ No vendors found in response structure');
+          debugPrint(
+            '   Data keys: ${data is Map ? (data as Map).keys.toList() : "not a map"}',
+          );
+          return [];
+        } catch (e, stack) {
+          debugPrint('❌ Error parsing vendors: $e');
+          debugPrint('   Stack: $stack');
+          return [];
         }
-        return [];
       },
     );
   }
 
+  /// Get vendor by ID
+  /// Documentation: GET /vendor/byId/:id
   Future<ApiResponse<Vendor>> getVendorById(String id) async {
     return get<Vendor>(
       '/vendor/byId/$id',
-      parser: (data) => Vendor.fromJson(data),
+      parser: (data) {
+        try {
+          // Handle wrapped response
+          if (data is Map<String, dynamic> && data.containsKey('data')) {
+            return Vendor.fromJson(data['data'] as Map<String, dynamic>);
+          }
+          return Vendor.fromJson(data as Map<String, dynamic>);
+        } catch (e) {
+          debugPrint('❌ Error parsing vendor: $e');
+          rethrow;
+        }
+      },
     );
+  }
+
+  // ============================================================================
+  // PRODUCT/FOOD ENDPOINTS - AS PER DOCUMENTATION
+  // ============================================================================
+
+  /// Get all products
+  /// Documentation: GET /order/products
+  Future<ApiResponse<List<Product>>> getProducts({String? search}) async {
+    return get<List<Product>>(
+      '/order/products',
+      queryParams: search != null ? {'search': search} : null,
+      parser: (data) {
+        try {
+          debugPrint('🔍 Parsing products response...');
+
+          if (data is List) {
+            debugPrint('✅ Found ${data.length} products');
+            return data
+                .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                .toList();
+          }
+
+          if (data is Map<String, dynamic>) {
+            final productsData = data['data'] ?? data['products'];
+            if (productsData is List) {
+              return productsData
+                  .map((e) => Product.fromJson(e as Map<String, dynamic>))
+                  .toList();
+            }
+          }
+
+          return [];
+        } catch (e) {
+          debugPrint('❌ Error parsing products: $e');
+          return [];
+        }
+      },
+    );
+  }
+  // ============================================================================
+  // NOTIFICATION ENDPOINTS - FIXED
+  // ============================================================================
+
+  /// Get notifications
+  /// Documentation: POST /notification/details (yes, it's POST!)
+  Future<ApiResponse<List<NotificationModel>>> getNotifications() async {
+    return post<List<NotificationModel>>(
+      '/notification/details',
+      parser: (data) {
+        try {
+          debugPrint('🔍 Parsing notifications response...');
+
+          if (data is List) {
+            debugPrint('✅ Found ${data.length} notifications');
+            return data
+                .map(
+                  (e) => NotificationModel.fromJson(e as Map<String, dynamic>),
+                )
+                .toList();
+          }
+
+          if (data is Map<String, dynamic>) {
+            final notificationsData = data['data'] ?? data['notifications'];
+            if (notificationsData is List) {
+              return notificationsData
+                  .map(
+                    (e) =>
+                        NotificationModel.fromJson(e as Map<String, dynamic>),
+                  )
+                  .toList();
+            }
+          }
+
+          return [];
+        } catch (e) {
+          debugPrint('❌ Error parsing notifications: $e');
+          return [];
+        }
+      },
+    );
+  }
+
+  // ============================================================================
+  // HELPER: Test Vendor Endpoint Specifically
+  // ============================================================================
+
+  /// Diagnose why vendors aren't showing
+  Future<Map<String, dynamic>> diagnoseVendorIssue() async {
+    try {
+      if (!_isInitialized) await initialize();
+
+      final uri = Uri.parse('$_baseUrl/vendor/availablevendors');
+      debugPrint('🔍 Testing vendor endpoint...');
+      debugPrint('   URL: $uri');
+      debugPrint('   Token: ${_authToken?.substring(0, 20) ?? "NO TOKEN"}...');
+
+      final response = await http.get(uri, headers: _headers);
+
+      debugPrint('📥 Status: ${response.statusCode}');
+      debugPrint('📥 Body: ${response.body}');
+
+      final result = {
+        'success': response.statusCode >= 200 && response.statusCode < 300,
+        'statusCode': response.statusCode,
+        'hasToken': _authToken != null,
+        'rawBody': response.body,
+      };
+
+      if (result['success'] as bool) {
+        try {
+          final parsed = jsonDecode(response.body);
+          result['parsedData'] = parsed;
+
+          if (parsed is List) {
+            result['vendorCount'] = parsed.length;
+            result['message'] = 'Found ${parsed.length} vendors';
+          } else if (parsed is Map) {
+            final data = parsed['data'];
+            if (data is List) {
+              result['vendorCount'] = data.length;
+              result['message'] = 'Found ${data.length} vendors (wrapped)';
+            } else {
+              result['message'] = 'No vendors array found';
+              result['vendorCount'] = 0;
+            }
+          }
+        } catch (e) {
+          result['parseError'] = e.toString();
+        }
+      } else {
+        result['message'] = 'Request failed with status ${response.statusCode}';
+      }
+
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': e.toString(),
+        'message': 'Network error occurred',
+      };
+    }
   }
 
   // ============================================================================
@@ -659,18 +1002,6 @@ class ApiClient {
   // ============================================================================
   // NOTIFICATION ENDPOINTS
   // ============================================================================
-
-  Future<ApiResponse<List<NotificationModel>>> getNotifications() async {
-    return get<List<NotificationModel>>(
-      '/notification/details',
-      parser: (data) {
-        if (data is List) {
-          return data.map((e) => NotificationModel.fromJson(e)).toList();
-        }
-        return [];
-      },
-    );
-  }
 
   // ============================================================================
   // PARCEL ENDPOINTS
@@ -695,24 +1026,59 @@ class ApiClient {
       body: {'paymentMethod': paymentMethod},
     );
   }
-}
 
-// ============================================================================
-// API RESPONSE MODEL
-// ============================================================================
+  // ============================================================================
+  // DIAGNOSTIC TOOLS
+  // ============================================================================
 
-class ApiResponse<T> {
-  final bool isSuccess;
-  final T? data;
-  final String? errorMessage;
+  /// Get raw response from an endpoint for debugging
+  Future<Map<String, dynamic>> getRawResponse(String endpoint) async {
+    try {
+      if (!_isInitialized) await initialize();
 
-  ApiResponse._({required this.isSuccess, this.data, this.errorMessage});
+      final uri = Uri.parse('$_baseUrl$endpoint');
+      debugPrint('🔍 Testing endpoint: $endpoint');
 
-  factory ApiResponse.success(T data) {
-    return ApiResponse._(isSuccess: true, data: data);
+      final response = await http.get(uri, headers: _headers);
+
+      return {
+        'endpoint': endpoint,
+        'statusCode': response.statusCode,
+        'success': response.statusCode >= 200 && response.statusCode < 300,
+        'body': response.body,
+        'bodyParsed': response.statusCode >= 200 && response.statusCode < 300
+            ? jsonDecode(response.body)
+            : null,
+      };
+    } catch (e) {
+      return {'endpoint': endpoint, 'success': false, 'error': e.toString()};
+    }
   }
 
-  factory ApiResponse.error(String message) {
-    return ApiResponse._(isSuccess: false, errorMessage: message);
+  /// Test all critical endpoints
+  Future<Map<String, bool>> testAllEndpoints() async {
+    final results = <String, bool>{};
+
+    final endpoints = [
+      '/vendor/availablevendors',
+      '/product/foods',
+      '/order/products',
+      '/auth/me',
+      '/order/cart',
+      '/wallet/balance',
+    ];
+
+    for (final endpoint in endpoints) {
+      try {
+        final result = await getRawResponse(endpoint);
+        results[endpoint] = result['success'] as bool;
+        debugPrint('${result['success'] ? "✅" : "❌"} $endpoint');
+      } catch (e) {
+        results[endpoint] = false;
+        debugPrint('❌ $endpoint - Error: $e');
+      }
+    }
+
+    return results;
   }
 }

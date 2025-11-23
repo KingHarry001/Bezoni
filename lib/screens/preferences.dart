@@ -1,23 +1,10 @@
+// File: lib/screens/preferences_screen.dart
 import 'package:bezoni/themes/theme_extensions.dart';
+import 'package:bezoni/services/app_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Data passed from Preferences -> Home
-class UserPreferences {
-  final String address;
-  final String? foodType;
-  final List<String> allergies;
-
-  const UserPreferences({
-    required this.address,
-    this.foodType,
-    required this.allergies,
-  });
-}
-
-/// =====================
-/// Preferences / Onboarding
-/// =====================
+/// Preferences / Onboarding Screen
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({super.key});
 
@@ -31,6 +18,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
   final _addressController = TextEditingController();
   String _selectedFoodType = '';
   final List<String> _selectedAllergies = [];
+  bool _isSaving = false;
 
   final List<String> _foodTypes = const [
     'Local',
@@ -58,6 +46,11 @@ class _PreferencesScreenState extends State<PreferencesScreen>
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
+    _loadExistingPreferences();
+  }
+
+  void _setupAnimations() {
     _anim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -70,6 +63,17 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     _anim.forward();
   }
 
+  Future<void> _loadExistingPreferences() async {
+    final appState = AppStateService();
+    if (appState.preferences != null) {
+      setState(() {
+        _addressController.text = appState.preferences!.address;
+        _selectedFoodType = appState.preferences!.foodType ?? '';
+        _selectedAllergies.addAll(appState.preferences!.allergies);
+      });
+    }
+  }
+
   @override
   void dispose() {
     _addressController.dispose();
@@ -77,30 +81,92 @@ class _PreferencesScreenState extends State<PreferencesScreen>
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final prefs = UserPreferences(
-      address: _addressController.text.trim(),
-      foodType: _selectedFoodType.isEmpty ? null : _selectedFoodType,
-      allergies: List<String>.from(_selectedAllergies),
-    );
+    setState(() => _isSaving = true);
 
-    HapticFeedback.lightImpact();
-    Navigator.pushReplacementNamed(
-      context,
-      '/home',
-      arguments: prefs,
-    );
+    try {
+      // Create preferences object
+      final prefs = UserPreferences(
+        userId: AppStateService().user?.id ?? '',
+        address: _addressController.text.trim(),
+        foodType: _selectedFoodType.isEmpty ? null : _selectedFoodType,
+        allergies: List<String>.from(_selectedAllergies),
+      );
+
+      // Save to app state (this also saves to SharedPreferences)
+      await AppStateService().savePreferences(prefs);
+
+      // Haptic feedback
+      HapticFeedback.lightImpact();
+
+      if (!mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Preferences saved successfully!'),
+          backgroundColor: context.successColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+
+      // Navigate to home
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving preferences: $e'),
+          backgroundColor: context.errorColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 360;
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: context.textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          // Skip button (only if coming from login/signup)
+          TextButton(
+            onPressed: () {
+              // Skip preferences and go to home
+              Navigator.pushReplacementNamed(context, '/home');
+            },
+            child: Text(
+              'Skip',
+              style: TextStyle(
+                color: context.subtitleColor,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
           child: FadeTransition(
             opacity: _fade,
             child: SlideTransition(
@@ -110,11 +176,11 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
+                    SizedBox(height: isSmallScreen ? 4 : 8),
                     Text(
                       "Let's personalize your experience",
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: isSmallScreen ? 20 : 22,
                         fontWeight: FontWeight.w800,
                         color: context.textColor,
                       ),
@@ -123,25 +189,34 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                     Text(
                       "Set your preferences for faster, better deliveries.",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: isSmallScreen ? 13 : 14,
                         color: context.subtitleColor,
                       ),
                     ),
 
-                    const SizedBox(height: 22),
-                    _sectionTitle("Address"),
+                    SizedBox(height: isSmallScreen ? 18 : 22),
+                    _sectionTitle("Delivery Address"),
                     const SizedBox(height: 10),
                     _decoratedField(
                       child: TextFormField(
                         controller: _addressController,
+                        style: TextStyle(color: context.textColor),
+                        maxLines: 2,
                         decoration: InputDecoration(
-                          hintText: "Enter your address",
+                          hintText: "Enter your delivery address",
+                          hintStyle: TextStyle(
+                            color: context.subtitleColor.withOpacity(0.6),
+                          ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 14,
                           ),
-                          suffixIcon: TextButton(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.my_location,
+                              color: context.primaryColor,
+                            ),
                             onPressed: () {
                               HapticFeedback.lightImpact();
                               setState(() {
@@ -149,15 +224,12 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                                     "Herbert Macaulay Way, Yaba, Lagos";
                               });
                             },
-                            child: const Text(
-                              "Use Current Location",
-                              style: TextStyle(color: Color(0xFF10B981)),
-                            ),
+                            tooltip: 'Use current location',
                           ),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your address';
+                            return 'Please enter your delivery address';
                           }
                           if (v.trim().length < 6) {
                             return 'Address looks too short';
@@ -167,11 +239,13 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: isSmallScreen ? 20 : 24),
                     _sectionTitle("What type of food do you enjoy?"),
                     const SizedBox(height: 4),
                     Text(
-                      "Select one",
+                      _selectedFoodType.isEmpty
+                          ? "Select one (optional)"
+                          : "Selected: $_selectedFoodType",
                       style: TextStyle(
                         fontSize: 12,
                         color: context.subtitleColor,
@@ -188,21 +262,20 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                               selected: _selectedFoodType == t,
                               onTap: () => setState(() {
                                 HapticFeedback.selectionClick();
-                                _selectedFoodType = _selectedFoodType == t
-                                    ? ''
-                                    : t;
+                                _selectedFoodType =
+                                    _selectedFoodType == t ? '' : t;
                               }),
                             ),
                           )
                           .toList(),
                     ),
 
-                    const SizedBox(height: 24),
-                    _sectionTitle("Any Allergies"),
+                    SizedBox(height: isSmallScreen ? 20 : 24),
+                    _sectionTitle("Any Allergies?"),
                     const SizedBox(height: 4),
                     Text(
                       _selectedAllergies.isEmpty
-                          ? "None selected"
+                          ? "None selected (optional)"
                           : _selectedAllergies.join(", "),
                       style: TextStyle(
                         fontSize: 12,
@@ -232,7 +305,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                           .toList(),
                     ),
 
-                    const SizedBox(height: 28),
+                    SizedBox(height: isSmallScreen ? 24 : 28),
                     SizedBox(
                       width: double.infinity,
                       height: 56,
@@ -243,16 +316,26 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                             borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
+                          disabledBackgroundColor: Colors.grey[300],
                         ),
-                        onPressed: _submit,
-                        child: const Text(
-                          "Continue",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                        onPressed: _isSaving ? null : _submit,
+                        child: _isSaving
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Continue",
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -266,13 +349,13 @@ class _PreferencesScreenState extends State<PreferencesScreen>
   }
 
   Widget _sectionTitle(String text) => Text(
-    text,
-    style: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-      color: context.textColor,
-    ),
-  );
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: context.textColor,
+        ),
+      );
 
   Widget _decoratedField({required Widget child}) {
     return Container(
@@ -318,9 +401,7 @@ class _PreferencesScreenState extends State<PreferencesScreen>
           label,
           style: TextStyle(
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected && !outlined
-                ? Colors.white
-                : context.textColor,
+            color: selected && !outlined ? Colors.white : context.textColor,
           ),
         ),
       ),
